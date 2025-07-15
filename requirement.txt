@@ -1,0 +1,21 @@
+#python3.12
+#cuda 12.8
+
+--extra-index-url https://download.pytorch.org/whl/cu128
+
+numpy
+scipy
+matplotlib
+rich
+torch
+
+pandas
+scikit-learn
+seaborn
+tqdm
+xgboost
+
+lightgbm
+
+pyarrow
+kagglehub
