@@ -2,6 +2,14 @@ from environment import *
 logger = logging.getLogger(name = __name__)
 from sklearn.metrics import precision_score, recall_score, f1_score
 
+def _compress(X, ae):
+    Z = ae.process(X, train = False)
+    Z = ae.encoder(Z)
+    Z = Z.detach()    ###
+    Z = Z.numpy()
+    Z = Z.astype('float64')
+    return Z
+
 
 class AnomalyDetector:
     def __init__(self, normal, anomalous, ae, manual = False):
