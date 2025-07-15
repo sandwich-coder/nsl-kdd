@@ -61,10 +61,6 @@ loader = Loader()
 X = loader.load(dataset)
 X_ = loader.load(dataset, train = False)
 
-#sampled
-X = sampler.sample(X, size = 300000)
-X_ = sampler.sample(X_, size = 300000)
-
 """
 logger.info('Intrinsic Dimension: {dimension}'.format(
     dimension = estimator(X, exact = True, trim = True),
@@ -102,6 +98,9 @@ truth_ = np.zeros([len(contaminated_)], dtype = 'int64')
 truth_[len(normal_):] = 1
 truth_ = truth_.astype('bool')
 
+
+#checkpoint
+sys.exit('---checkpoint')
 
 #model
 ae = Autoencoder(X.shape[1])
