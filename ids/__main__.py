@@ -24,11 +24,6 @@ else:
     cuda_version = sh_.split()
     cuda_version = cuda_version[cuda_version.index('CUDA') + 2]
 
-#import based on this module, instead of the terminal
-file = os.path.abspath(__file__)
-directory_ = os.path.dirname(file)
-sys.path[0] = directory_
-
 
 from environment import *
 logger = logging.getLogger(name = 'main')
