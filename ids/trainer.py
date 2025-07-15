@@ -15,7 +15,7 @@ else:
 learning_rate = 0.0001
 epsilon = 1e-7
 batch_size = 32
-epochs = 3
+epochs = 30
 
 
 class Trainer:
@@ -68,6 +68,8 @@ class Trainer:
 
         #processed
         data = ae.process(X)
+
+        logger.info('Trained Data: {}'.format(tuple(data.size())))
 
         #to gpu
         data = data.to(device)
