@@ -78,7 +78,7 @@ logger.info('Intrinsic Dimension: {dimension}'.format(
 normal = X.copy()
 anomalous = sampler.sample(
     loader.load(dataset, normal = False),
-    len(normal) // 9,
+    len(normal),
     )
 contaminated = np.concatenate([
     normal,
@@ -92,7 +92,7 @@ truth = truth.astype('bool')
 normal_ = X_.copy()
 anomalous_ = sampler.sample(
     loader.load(dataset, normal = False, train = False),
-    len(normal_) // 9,
+    len(normal_),
     )
 contaminated_ = np.concatenate([
     normal_,

@@ -18,10 +18,16 @@ class Autoencoder(nn.Module):
         self.scaler = None
 
         encoder = nn.Sequential(
-            nn.Sequential(nn.Linear(in_features, 10), nn.Tanh()),
+            nn.Sequential(nn.Linear(in_features, 25), nn.ReLU()),
+            nn.Sequential(nn.Linear(25, 20), nn.ReLU()),
+            nn.Sequential(nn.Linear(20, 15), nn.ReLU()),
+            nn.Sequential(nn.Linear(15, 10), nn.Tanh()),
             )
         decoder = nn.Sequential(
-            nn.Sequential(nn.Linear(10, in_features), nn.Tanh()),
+            nn.Sequential(nn.Linear(10, 15), nn.ReLU()),
+            nn.Sequential(nn.Linear(15, 20), nn.ReLU()),
+            nn.Sequential(nn.Linear(20, 25), nn.ReLU()),
+            nn.Sequential(nn.Linear(25, in_features), nn.Tanh()),
             )
 
         with torch.no_grad():
