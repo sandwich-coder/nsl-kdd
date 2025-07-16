@@ -30,11 +30,6 @@ from sklearn.preprocessing import MinMaxScaler
 # - loaded -
 
 df = pd.read_csv('datasets/nsl-kdd/train-flow.csv')
-categorical = [
-    'protocol',
-    'service',
-    'flag',
-    ]
 df = df.drop(columns = ['attack_name', 'attack_step', 'unknown'])
 
 categorical = [
@@ -43,6 +38,7 @@ categorical = [
     'flag',
     ]
 df = pd.get_dummies(df, columns = categorical)
+#del categorical
 
 normal = df[df['attack_flag'] == 0].copy()
 normal = normal.drop(columns = ['attack_flag'])
@@ -70,3 +66,4 @@ data = torch.tensor(
     scaler.transform(data),
     dtype = torch.float32,
     )
+#del low, low_valid, valid
