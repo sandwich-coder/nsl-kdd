@@ -30,6 +30,7 @@ logger = logging.getLogger(name = 'main')
 logging.basicConfig(level = args.log)
 from sklearn.ensemble import IsolationForest
 from sklearn.metrics import precision_score, recall_score, f1_score
+from sklearn.model_selection import train_test_split
 
 from loader import Loader
 from models import Autoencoder
@@ -58,8 +59,8 @@ estimator = DimensionEstimator()
 
 #load
 loader = Loader()
-X = loader.load(dataset)
-X_ = loader.load(dataset, train = False)
+normal = loader.load(dataset)
+anomalous = loader.load(dataset, normal = False)
 
 """
 logger.info('Intrinsic Dimension: {dimension}'.format(
@@ -70,12 +71,14 @@ logger.info('Intrinsic Dimension: {dimension}'.format(
 
 # - prepared -
 
+#anomalies sampled
+anomalous = sampler.sample(anomalous, len(normal) // 9)
+
+#train-test-split
+normal, normal_ = train_test_split(normal, test_size = 0.2)
+anomalous, anomalous_ = train_test_split(anomalous, test_size = 0.2)
+
 #train
-normal = X.copy()
-anomalous = sampler.sample(
-    loader.load(dataset, normal = False),
-    len(normal),
-    )
 contaminated = np.concatenate([
     normal,
     anomalous,
@@ -85,11 +88,6 @@ truth[len(normal):] = 1
 truth = truth.astype('bool')
 
 #test
-normal_ = X_.copy()
-anomalous_ = sampler.sample(
-    loader.load(dataset, normal = False, train = False),
-    len(normal_),
-    )
 contaminated_ = np.concatenate([
     normal_,
     anomalous_
@@ -98,9 +96,9 @@ truth_ = np.zeros([len(contaminated_)], dtype = 'int64')
 truth_[len(normal_):] = 1
 truth_ = truth_.astype('bool')
 
-
-#checkpoint
-sys.exit('---checkpoint')
+#training set
+X = normal.copy()
+X_ = normal_.copy()
 
 #model
 ae = Autoencoder(X.shape[1])
