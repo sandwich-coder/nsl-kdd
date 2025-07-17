@@ -25,12 +25,13 @@ mpl.rcParams['lines.linewidth'] = 0.5
 import torch
 from torch import optim, nn
 
+from torch.utils.data import DataLoader
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_score, recall_score, f1_score
 from tqdm import tqdm
-from torch.utils.data import DataLoader
+import seaborn as sb
 
 
 #gpu check
@@ -46,63 +47,52 @@ else:
 # - loaded -
 
 #raw
-df1 = pd.read_csv('datasets/nsl-kdd/train-flow.csv')
-df2 = pd.read_csv('datasets/nsl-kdd/test-flow.csv')
-df = pd.concat([df1, df2], axis = 'index')
-df = df.drop(columns = ['attack_name', 'attack_step', 'unknown'])
-del df1, df2
+df = pd.read_csv('datasets/nsl-kdd/train.csv', header = 0, index_col = None)
+df_ = pd.read_csv('datasets/nsl-kdd/test.csv', header = 0, index_col = None)
 
 #one-hot
+merged = pd.concat([df, df_], axis = 'index')
 categorical = [
-    'protocol',
+    'protocol_type',
     'service',
     'flag',
     ]
-df = pd.get_dummies(df, columns = categorical)
-del categorical
-
-normal = df[df['attack_flag'] == 0].copy()
-normal = normal.drop(columns = ['attack_flag'])
-normal = normal.to_numpy(dtype = 'float64')
-normal = (normal - normal.min()) / (normal.max() - normal.min())
-
-anomalous = df[df['attack_flag'] == 1].copy()
-anomalous = anomalous.drop(columns = ['attack_flag'])
-anomalous = anomalous.to_numpy(dtype = 'float64')
-anomalous = (anomalous - anomalous.min()) / (anomalous.max() - anomalous.min())
+merged = pd.get_dummies(merged, columns = categorical)
+df = merged.iloc[:df.shape[0], :]
+df_ = merged.iloc[df.shape[0]:, :]
+del merged
 
 
-# - refined -
+# - separated -
 
-high = np.quantile(normal, 0.95, axis = 0)
-high_valid = normal <= high
-high_valid = np.all(high_valid, axis = 1)
-valid = high_valid.copy()
-normal = normal[valid]
-normal = (normal - np.float64(0.5)) * np.float64(2)
+normal = df[df['attack'] == 'normal'].drop(columns = ['attack']).to_numpy(dtype = 'float64')
+normal_ = df_[df_['attack'] == 'normal'].drop(columns = ['attack']).to_numpy(dtype = 'float64')
 
-high = np.quantile(anomalous, 0.95, axis = 0)
-high_valid = anomalous <= high
-high_valid = np.all(high_valid, axis = 1)
-valid = high_valid.copy()
-anomalous = anomalous[valid]
-anomalous = (anomalous - np.float64(0.5)) * np.float64(2)
-del high, high_valid, valid
+anomalous = df[df['attack'] != 'normal'].drop(columns = ['attack']).to_numpy(dtype = 'float64')
+anomalous_ = df_[df_['attack'] != 'normal'].drop(columns = ['attack']).to_numpy(dtype = 'float64')
 
-normal, normal_ = train_test_split(normal, test_size = 0.2)
-anomalous, anomalous_ = train_test_split(anomalous, test_size = 0.2)
 
-contaminated = np.concatenate([normal, anomalous], axis = 0)
-truth = np.zeros([len(contaminated)], dtype = 'int64')
-truth[len(normal):] = 1
-truth = truth.astype('bool')
+"""
+# - what if (turns out to make visual illusion of the reconstruction losses) -
 
-contaminated_ = np.concatenate([normal_, anomalous_], axis = 0)
-truth_ = np.zeros([len(contaminated_)], dtype = 'int64')
-truth_[len(normal_):] = 1
-truth_ = truth_.astype('bool')
+def qcut(A, lowq, highq):
+    A = A.copy()
 
-#train set
+    low = np.quantile(A, lowq, axis = 0)
+    high = np.quantile(A, highq, axis = 0)
+
+    low_valid = A >= low
+    high_valid = A <= high
+
+    valid = low_valid & high_valid
+    valid = np.all(valid, axis = 1)
+    return A[valid]
+
+anomalous = qcut(anomalous, 0, 0.99)
+anomalous_ = qcut(anomalous_, 0, 0.99)
+"""
+
+#training set
 X = normal.copy()
 X_ = normal_.copy()
 
@@ -119,12 +109,14 @@ class Autoencoder(nn.Module):
         self.scaler = None
 
         encoder = nn.Sequential(
-            nn.Sequential(nn.Linear(122, 32), nn.ReLU()),
-            nn.Sequential(nn.Linear(32, 5), nn.Tanh()),
+            nn.Sequential(nn.Linear(122, 40), nn.GELU()),
+            nn.Sequential(nn.Linear(40, 13), nn.GELU()),
+            nn.Sequential(nn.Linear(13, 4), nn.Sigmoid()),
             )
         decoder = nn.Sequential(
-            nn.Sequential(nn.Linear(5, 32), nn.ReLU()),
-            nn.Sequential(nn.Linear(32, 122), nn.Tanh()),
+            nn.Sequential(nn.Linear(4, 13), nn.GELU()),
+            nn.Sequential(nn.Linear(13, 40), nn.GELU()),
+            nn.Sequential(nn.Linear(40, 122), nn.Sigmoid()),
             )
 
         with torch.no_grad():
@@ -154,7 +146,7 @@ class Autoencoder(nn.Module):
         if not train:
             pass
         else:
-            scaler = MinMaxScaler(feature_range = (-1, 1))
+            scaler = MinMaxScaler(feature_range = (0, 1), copy = True)
             scaler.fit(X)
 
         processed = scaler.transform(X)
@@ -192,8 +184,13 @@ class Autoencoder(nn.Module):
 
 # - training -
 
+#model
 ae = Autoencoder()
 
+#loss function
+LossFn = nn.MSELoss
+
+#processed
 data = ae.process(X)
 
 #to gpu
@@ -206,16 +203,16 @@ optimizer = optim.AdamW(
     lr = 0.0001,
     eps = 1e-7,
     )
-loss_fn = nn.MSELoss()
 
 loader = DataLoader(
     data,
     batch_size = 32,
     shuffle = True,
     )
+loss_fn = LossFn()
 batchloss = []
 logger.info('Training begins.')
-for l in range(10):
+for l in range(100):
     ae.train()
     last_epoch = []
     if logger.getEffectiveLevel() > 20:
@@ -251,143 +248,193 @@ for l in range(10):
 
 batchloss = np.concatenate(batchloss, axis = 0)
 logger.info(' - Training finished - ')
-del iteration
+del optimizer, loader, loss_fn, batchloss, last_epoch, iteration, output, loss
 
 #back to cpu
 ae.cpu()
 data = data.cpu()
 
 
-# - result -
-
-Y = ae.flow(X)
-Y_ = ae.flow(X_)
-
-error = (ae.flow(normal) - normal) ** 2
-error = error.sum(axis = 1, dtype = 'float64')
-normal_error = np.sqrt(error, dtype = 'float64')
-
-error = (ae.flow(anomalous) - anomalous) ** 2
-error = error.sum(axis = 1, dtype = 'float64')
-anomalous_error = np.sqrt(error, dtype = 'float64')
-
-error = (ae.flow(normal_) - normal_) ** 2
-error = error.sum(axis = 1, dtype = 'float64')
-normal_error_ = np.sqrt(error, dtype = 'float64')
-
-error = (ae.flow(anomalous_) - anomalous_) ** 2
-error = error.sum(axis = 1, dtype = 'float64')
-anomalous_error_ = np.sqrt(error, dtype = 'float64')
-del error
-
-fig = pp.figure(layout = 'constrained')
-ax = fig.add_subplot()
-ax.set_box_aspect(1)
-ax.set_title('Reconstruction Errors')
-ax.set_xticks([])
-pp.setp(ax.get_yticklabels(), rotation = 90, ha = 'right', va = 'center')
-
-temp = 25 / len(normal_error) ** 0.5
-if temp > 1:
-    temp = 1
-plot_1 = ax.plot(
-    np.linspace(0, 1, num = len(normal_error), dtype = 'float64'), normal_error,
-    marker = 'o', markersize = 3 * temp,
-    linestyle = '',
-    alpha = 0.8,
-    color = 'tab:blue',
-    label = 'normal',
-    )
-
-temp = 25 / len(anomalous_error) ** 0.5
-if temp > 1:
-    temp = 1
-plot_2 = ax.plot(
-    np.linspace(0, 1, num = len(anomalous_error), dtype = 'float64'), anomalous_error,
-    marker = 'o', markersize = 3 * temp,
-    linestyle = '',
-    alpha = 0.8,
-    color = 'tab:red',
-    label = 'anomalous',
-    )
-
-ax.legend()
-errors = fig
-del fig, ax, plot_1, plot_2
-
-fig = pp.figure(layout = 'constrained')
-ax = fig.add_subplot()
-ax.set_box_aspect(1)
-ax.set_title('Reconstruction Errors (test)')
-ax.set_xticks([])
-pp.setp(ax.get_yticklabels(), rotation = 90, ha = 'right', va = 'center')
-
-temp = 25 / len(normal_error_) ** 0.5
-if temp > 1:
-    temp = 1
-plot_1 = ax.plot(
-    np.linspace(0, 1, num = len(normal_error_), dtype = 'float64'), normal_error_,
-    marker = 'o', markersize = 3 * temp,
-    linestyle = '',
-    alpha = 0.8,
-    color = 'tab:blue',
-    label = 'normal',
-    )
-
-temp = 25 / len(anomalous_error_) ** 0.5
-if temp > 1:
-    temp = 1
-plot_2 = ax.plot(
-    np.linspace(0, 1, num = len(anomalous_error_), dtype = 'float64'), anomalous_error_,
-    marker = 'o', markersize = 3 * temp,
-    linestyle = '',
-    alpha = 0.8,
-    color = 'tab:red',
-    label = 'anomalous',
-    )
-
-ax.legend()
-errors_ = fig
-del fig, ax, plot_1, plot_2
-
-
 # - test -
 
-threshold = np.quantile(normal_error, 0.99, axis = 0)
+## Is it necessary to use the same metric to compare the reconstruction losses? Can it make a big difference?
+loss_fn = LossFn(reduction = 'none')
 
-error = (ae.flow(contaminated) - contaminated) ** 2
-error = error.sum(axis = 1, dtype = 'float64')
-error = np.sqrt(error, dtype = 'float64')
-prediction = error >= threshold
+normal_data = ae.process(normal, train = False)
+normal_data_ = ae.process(normal_, train = False)
 
-error = (ae.flow(contaminated_) - contaminated_) ** 2
-error = error.sum(axis = 1, dtype = 'float64')
-error = np.sqrt(error, dtype = 'float64')
-prediction_ = error >= threshold
-del error
+anomalous_data = ae.process(anomalous, train = False)
+anomalous_data_ = ae.process(anomalous_, train = False)
 
+with torch.no_grad():
+
+    normal_loss = loss_fn(ae(normal_data), normal_data)
+    normal_loss = normal_loss.numpy()
+    normal_loss = normal_loss.mean(axis = 1, dtype = 'float64')
+
+    normal_loss_ = loss_fn(ae(normal_data_), normal_data_)
+    normal_loss_ = normal_loss_.numpy()
+    normal_loss_ = normal_loss_.mean(axis = 1, dtype = 'float64')
+
+    anomalous_loss = loss_fn(ae(anomalous_data), anomalous_data)
+    anomalous_loss = anomalous_loss.numpy()
+    anomalous_loss = anomalous_loss.mean(axis = 1, dtype = 'float64')
+
+    anomalous_loss_ = loss_fn(ae(anomalous_data_), anomalous_data_)
+    anomalous_loss_ = anomalous_loss_.numpy()
+    anomalous_loss_ = anomalous_loss_.mean(axis = 1, dtype = 'float64')
+
+
+losses_normal = pd.DataFrame({
+    'loss':normal_loss,
+    'label':['normal'] * normal_loss.shape[0],
+    })
+losses_anomalous = pd.DataFrame({
+    'loss':anomalous_loss,
+    'label':['anomalous'] * anomalous_loss.shape[0],
+    })
+losses = pd.concat([losses_normal, losses_anomalous], axis = 'index')
+
+losses_normal_ = pd.DataFrame({
+    'loss':normal_loss_,
+    'label':['normal'] * normal_loss_.shape[0],
+    })
+losses_anomalous_ = pd.DataFrame({
+    'loss':anomalous_loss_,
+    'label':['anomalous'] * anomalous_loss_.shape[0],
+    })
+losses_ = pd.concat([losses_normal_, losses_anomalous_], axis = 'index')
+del normal_data, normal_data_, anomalous_data, anomalous_data_, normal_loss, normal_loss_, anomalous_loss, anomalous_loss_, losses_normal, losses_anomalous, losses_normal_, losses_anomalous_
+
+fig = pp.figure(layout = 'constrained')
+ax = fig.add_subplot()
+ax.set_box_aspect(0.3)
+ax.set_title('Reconstruction Losses (train)')
+ax.set_xlabel('loss')
+ax.set_ylabel('proportion (%)')
+pp.setp(ax.get_yticklabels(), rotation = 90, va = 'center')
+
+sb.histplot(
+    data = losses,
+    x = 'loss',
+    hue = 'label',
+    binwidth = 0.01,
+    binrange = [0, 1],
+    stat = 'percent', common_norm = False,
+    ax = ax,
+    )
+
+ax.axvline(
+    x = losses[losses['label'] == 'normal']['loss'].quantile(0.9),
+    ymin = 0, ymax = 0.9,
+    linestyle = '--', color = 'orange',
+    label = '0.9q',
+    )
+ax.axvline(
+    x = losses[losses['label'] == 'normal']['loss'].quantile(0.99),
+    ymin = 0, ymax = 0.9,
+    linestyle = '--', color = 'black',
+    label = '0.99q',
+    )
+
+ax.legend()
+reconstructions = fig
+del fig, ax
+
+fig = pp.figure(layout = 'constrained')
+ax = fig.add_subplot()
+ax.set_box_aspect(0.3)
+ax.set_title('Reconstruction Losses (test)')
+ax.set_xlabel('loss')
+ax.set_ylabel('proportion (%)')
+pp.setp(ax.get_yticklabels(), rotation = 90, va = 'center')
+
+sb.histplot(
+    data = losses_,
+    x = 'loss',
+    hue = 'label',
+    binwidth = 0.01,
+    binrange = [0, 4],
+    stat = 'percent', common_norm = False,
+    ax = ax,
+    )
+
+ax.axvline(
+    x = losses_[losses_['label'] == 'normal']['loss'].quantile(0.9),
+    ymin = 0, ymax = 0.9,
+    linestyle = '--', color = 'orange',
+    label = '0.9q',
+    )
+ax.axvline(
+    x = losses_[losses_['label'] == 'normal']['loss'].quantile(0.99),
+    ymin = 0, ymax = 0.9,
+    linestyle = '--', color = 'black',
+    label = '0.99q',
+    )
+
+ax.legend()
+reconstructions_ = fig
+del fig, ax
+
+os.makedirs('figures', exist_ok = True)
+reconstructions.savefig('figures/reconstructions-train.png', dpi = 300)
+reconstructions_.savefig('figures/reconstructions-test.png', dpi = 300)
+
+
+# - detections -
+
+threshold = losses[losses['label'] == 'normal']['loss'].quantile(0.99)
+
+result = losses.set_axis(['truth', 'prediction'], axis = 'columns', copy = True)
+loss = result['truth'].to_numpy(dtype = 'float64', copy = True)
+result['truth'] = np.where(loss <= threshold, 'normal', 'anomalous')
+
+result_ = losses_.set_axis(['truth', 'prediction'], axis = 'columns', copy = True)
+loss = result_['truth'].to_numpy(dtype = 'float64', copy = True)
+result_['truth'] = np.where(loss <= threshold, 'normal', 'anomalous')
+del loss
+
+detections = result.replace({
+    'anomalous':True,
+    'normal':False,
+    })
+detections = detections.astype('bool', copy = False)
+
+detections_ = result_.replace({
+    'anomalous':True,
+    'normal':False,
+    })
+detections_ = detections_.astype('bool', copy = False)
+
+
+# - results -
 
 print('\n')
 print(' --- Train --- ')
 print('')
+print(result.value_counts())
+print('')
 print('      Precision: {precision}'.format(
-    precision = round(precision_score(truth, prediction), ndigits = 3),
+    precision = round(precision_score(detections['truth'], detections['prediction']), ndigits = 3),
     ))
 print('         Recall: {recall}'.format(
-    recall = round(recall_score(truth, prediction), ndigits = 3),
+    recall = round(recall_score(detections['truth'], detections['prediction']), ndigits = 3),
     ))
 print('             F1: {f1}'.format(
-    f1 = round(f1_score(truth, prediction), ndigits = 3),
+    f1 = round(f1_score(detections['truth'], detections['prediction']), ndigits = 3),
     ))
 
 print('\n')
 print(' --- Test --- ')
+print('')
+print(result_.value_counts())
+print('')
 print('      Precision: {precision}'.format(
-    precision = round(precision_score(truth_, prediction_), ndigits = 3),
+    precision = round(precision_score(detections_['truth'], detections_['prediction']), ndigits = 3),
     ))
 print('         Recall: {recall}'.format(
-    recall = round(recall_score(truth_, prediction_), ndigits = 3),
+    recall = round(recall_score(detections_['truth'], detections_['prediction']), ndigits = 3),
     ))
 print('             F1: {f1}'.format(
-    f1 = round(f1_score(truth_, prediction_), ndigits = 3),
+    f1 = round(f1_score(detections_['truth'], detections_['prediction']), ndigits = 3),
     ))
