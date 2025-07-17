@@ -9,9 +9,12 @@ import logging
 logger = logging.getLogger(name = 'experiment')
 logging.basicConfig(level = 'INFO')
 import numpy as np
+from scipy import linalg as la
 
-from scipy import integrate
-from scipy import stats
+import pandas as pd
+import torch
+from torch import optim, nn
+import xgboost as xgb
 import matplotlib as mpl
 from matplotlib import pyplot as pp
 mpl.rcParams['figure.figsize'] = (10, 10)
@@ -22,15 +25,12 @@ mpl.rcParams['ytick.labelsize'] = 'xx-small'
 mpl.rcParams['legend.fontsize'] = 'x-small'
 mpl.rcParams['lines.markersize'] = 1
 mpl.rcParams['lines.linewidth'] = 0.5
-import torch
-from torch import optim, nn
 
 from torch.utils.data import DataLoader
-import pandas as pd
+from tqdm import tqdm
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_score, recall_score, f1_score
-from tqdm import tqdm
 import seaborn as sb
 
 

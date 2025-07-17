@@ -3,19 +3,25 @@
 
 --extra-index-url https://download.pytorch.org/whl/cu128
 
+#necessary
 numpy
-
 scipy
-matplotlib
-rich
+
+#default
+pandas
 torch
 xgboost
+matplotlib
+rich
 
-pandas
+#additional
+lightgbm
+tqdm
+
+#supplementary
 scikit-learn
 seaborn
-tqdm
-lightgbm
 
+#data
 pyarrow
 kagglehub
