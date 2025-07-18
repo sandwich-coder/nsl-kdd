@@ -50,7 +50,7 @@ else:
 df = pd.read_csv('datasets/nsl-kdd/train.csv', header = 0, index_col = None)
 df_ = pd.read_csv('datasets/nsl-kdd/test.csv', header = 0, index_col = None)
 
-#one-hot
+#preprocessed
 merged = pd.concat([df, df_], axis = 'index')
 categorical = [
     'protocol_type',
