@@ -14,7 +14,7 @@ xgboost
 matplotlib
 rich
 
-#additional
+#extra
 lightgbm
 tqdm
 
