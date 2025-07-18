@@ -119,22 +119,21 @@ class AnomalyDetector:
 
                 ax.axvline(
                     x = losses[losses['truth'] == False]['loss'].quantile(0.9),
-                    ymin = 0.3, ymax = 0.7,
-                    linestyle = '--',
+                    ymax = 0.7,
+                    linestyle = '--', linewidth = 1,
                     color = 'tab:grey',
                     label = 'Q 0.9',
                     )
                 ax.axvline(
                     x = losses[losses['truth'] == False]['loss'].quantile(0.99),
-                    ymin = 0.3, ymax = 0.7,
-                    linestyle = '--',
+                    ymax = 0.7,
+                    linestyle = '--', linewidth = 1,
                     color = 'tab:brown',
                     label = 'Q 0.99',
                     )
                 ax.axvline(
                     x = threshold,
-                    ymin = 0.1, ymax = 0.9,
-                    linestyle = '-.',
+                    linestyle = '--', linewidth = 1.5,
                     color = 'black',
                     label = 'threshold',
                     )
