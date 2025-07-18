@@ -1,0 +1,2 @@
+1.   An instance attribute always starts with an underbar. It is referenced, assigned, and deleted only in methods of its class, viewed as a small namespace in which objects can be stashed for later use.
+2.   'if' statements follow the "false-first".
