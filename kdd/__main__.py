@@ -14,7 +14,7 @@ from loader import Loader
 from models import Autoencoder
 from trainer import Trainer
 from anomaly_detector import AnomalyDetector
-from utils import Sampler
+from utils import Sampler, DimensionEstimator
 
 
 # - gpu driver check -
@@ -56,6 +56,15 @@ anomalous, anomalous_ = loader.load(dataset, benign = False)
 X = normal.copy()
 X_ = normal_.copy()
 
+"""
+#dimension estimation
+estimator = DimensionEstimator()
+dimension = estimator(X, exact = True, trim = True)
+logger.info('intrinsic dimension: {dimension}'.format(
+    dimension = dimension,
+    ))
+"""
+
 #model
 ae = Autoencoder()
 
@@ -88,7 +97,7 @@ truth_ = np.ones(mixed_.shape[0], dtype = 'int64')
 truth_[:len(normal_)] = 0
 truth_ = truth_.astype('bool')
 
-detector = AnomalyDetector(X, ae, trainer.LossFn, quantile = 0.95)
+detector = AnomalyDetector(X, ae, trainer.LossFn, quantile = 0.99)
 
 print('\n')
 print(' --- Train ---\n')

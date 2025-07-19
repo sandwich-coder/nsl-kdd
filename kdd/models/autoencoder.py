@@ -15,12 +15,10 @@ class Autoencoder(nn.Module):
 
         encoder = nn.Sequential(
             nn.Sequential(nn.Linear(122, 40), nn.GELU()),
-            nn.Sequential(nn.Linear(40, 13), nn.GELU()),
-            nn.Sequential(nn.Linear(13, 4), nn.Sigmoid()),
+            nn.Sequential(nn.Linear(40, 9), nn.Sigmoid()),
             )
         decoder = nn.Sequential(
-            nn.Sequential(nn.Linear(4, 13), nn.GELU()),
-            nn.Sequential(nn.Linear(13, 40), nn.GELU()),
+            nn.Sequential(nn.Linear(9, 40), nn.GELU()),
             nn.Sequential(nn.Linear(40, 122), nn.Sigmoid()),
             )
 

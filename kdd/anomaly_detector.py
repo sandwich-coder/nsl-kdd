@@ -111,7 +111,7 @@ class AnomalyDetector:
                     data = losses,
                     x = 'loss',
                     hue = 'truth',
-                    bins = 100,
+                    bins = 500,
                     binrange = [0, 1],
                     stat = 'percent', common_norm = False,
                     ax = ax,
@@ -120,14 +120,14 @@ class AnomalyDetector:
                 ax.axvline(
                     x = losses[losses['truth'] == False]['loss'].quantile(0.9),
                     ymax = 0.7,
-                    linestyle = '--', linewidth = 1,
+                    linestyle = '-.', linewidth = 1,
                     color = 'tab:grey',
                     label = 'Q 0.9',
                     )
                 ax.axvline(
                     x = losses[losses['truth'] == False]['loss'].quantile(0.99),
                     ymax = 0.7,
-                    linestyle = '--', linewidth = 1,
+                    linestyle = '-.', linewidth = 1,
                     color = 'tab:brown',
                     label = 'Q 0.99',
                     )
