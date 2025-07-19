@@ -1,3 +1,5 @@
+# Need be fixed.
+
 from environment import *
 logger = logging.getLogger(name = __name__)
 from scipy.spatial.distance import cdist
@@ -36,11 +38,14 @@ class DimensionEstimator:
             raise ValueError('\'divisions\' must be greater than 1.')
         if batch_count < 1:
             raise ValueError('\'batch_count\' must be positive.')
-        assert X.dtype == np.float64, 'The dtype doesn\'t match.'
+        if X.dtype != np.float64:
+            logger.warning('The dtype doesn\'t match.')
+            X = X.astype('float64')
         if divisions > 100:
             logger.error('The number of divisions higher than 100 will be meaningless.')
         if trim:
             logger.info('The dataset is trimmed by the isolation forest.')
+        X = X.copy()
 
         #trimmed
         if trim:

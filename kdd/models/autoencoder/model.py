@@ -43,7 +43,8 @@ class Autoencoder(nn.Module):
             raise TypeError('The input should be a \'numpy.ndarray\'.')
         if X.ndim != 2:
             raise ValueError('The input must be tabular.')
-        assert X.dtype == np.float64, 'The dtype doesn\'t match.'
+        if X.dtype != np.float64:
+            raise ValueError('The input must be of \'numpy.float64\'.')
 
         if not train:
             pass
@@ -63,7 +64,8 @@ class Autoencoder(nn.Module):
             raise ValueError('The input must not be on a graph. \nThis method doesn\'nt automatically detach such Tensors.')
         if processed.dim() != 2:
             raise ValueError('The input must be tabular.')
-        assert processed.dtype == torch.float32, 'The dtype doesn\'t match.'
+        if processed.dtype != torch.float32:
+            raise ValueError('The input must be of \'torch.float32\'.')
 
         _ = processed.numpy()
         unprocessed = _.astype('float64')
@@ -76,7 +78,8 @@ class Autoencoder(nn.Module):
             raise TypeError('The input should be a \'numpy.ndarray\'.')
         if X.ndim != 2:
             raise ValueError('The input must be tabular.')
-        assert X.dtype == np.float64, 'The dtype doesn\'t match.'
+        if X.dtype != np.float64:
+            raise ValueError('The input must be of \'numpy.float64\'.')
 
         self.eval()
 
@@ -104,7 +107,8 @@ class Autoencoder(nn.Module):
             raise TypeError('Whether to enable the dimension estimation should be boolean.')
         if X.ndim != 2:
             raise ValueError('The input must be tabular.')
-        assert X.dtype == np.float64, 'The dtype doesn\'t match.'
+        if X.dtype != np.float64:
+            raise ValueError('The input must be of \'numpy.float64\'.')
 
         if auto_latent:
             estimator = DimensionEstimator()

@@ -14,9 +14,12 @@ class AnomalyDetector:
             raise TypeError('The loss function must be a subclass of \'torch.nn.Module\'.')
         if not isinstance(quantile, float):
             raise TypeError('The loss quantile should be a float.')
+        if X.ndim != 2:
+            raise ValueError('The dataset must be tabular.')
+        if X.dtype != np.float64:
+            raise ValueError('The dataset must be of \'numpy.float64\'.')
         if not 0 < quantile < 1:
             raise ValueError('The quantile must be between 0 and 1.')
-        assert X.dtype == np.float64, 'The dtype doesn\'t match.'
 
         self._ae = ae
         self._LossFn = LossFn
@@ -46,15 +49,16 @@ class AnomalyDetector:
             raise ValueError('The dataset must be tabular.')
         if A.shape[1] != self._in_features:
             raise ValueError('The dataset must have the same feature count.')
-        if truth.dtype != np.bool and truth is not None:
-            raise ValueError('\'truth\' must be of \'numpy.bool\'.')
+        if A.dtype != np.float64:
+            raise ValueError('The dataset must be of \'numpy.float64\'.')
         if truth.ndim != 1 and truth is not None:
             raise ValueError('\'truth\' must be 1-dimensional.')
+        if truth.dtype != np.bool and truth is not None:
+            raise ValueError('\'truth\' must be of \'numpy.bool\'.')
         if len(truth) != len(A) and truth is not None:
             raise ValueError('\'truth\' must have the same length as the dataset.')
         if truth is None and return_histplot:
             raise ValueError('\'return_histplot\' is valid only when the truth is given.')
-        assert A.dtype == np.float64, 'The dtype doesn\'t match.'
         returns = []
 
         loss_fn = self._LossFn(reduction = 'none')
