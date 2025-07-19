@@ -73,7 +73,7 @@ ae = Autoencoder()
 
 #trained
 ae.compile()
-descent = ae.fit(X, return_descentplot = True)
+descent = ae.fit(X, return_descentplot = True, auto_latent = True)
 
 
 #detection

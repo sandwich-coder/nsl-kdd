@@ -94,6 +94,7 @@ class Autoencoder(nn.Module):
 
         self._trainer = Trainer(LossFn = LossFn)
 
+
     def fit(self, X, return_descentplot = False, auto_latent = False):
         if not isinstance(X, np.ndarray):
             raise TypeError('The input should be a \'numpy.ndarray\'.')
@@ -108,7 +109,7 @@ class Autoencoder(nn.Module):
         if auto_latent:
             estimator = DimensionEstimator()
             dimension = estimator(X, exact = True, trim = True)
-            logger.info('intrinsic dimension: {}'.format(round(dimension, ndigits = 3)))
+            logger.info('intrinsic dimension: {}'.format(round(dimension, ndigits = 2)))
             self._latent = round(dimension)
         logger.info('The latent dimension is set to {}'.format(self._latent))
 
