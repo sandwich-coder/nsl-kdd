@@ -38,7 +38,7 @@ class AnomalyDetector:
     def predict(self, A, truth = None, return_histplot = False):
         if not isinstance(A, np.ndarray):
             raise TypeError('The dataset should be a \'numpy.ndarray\'.')
-        if not (truth is None or isinstance(truth, np.ndarray)):
+        if not isinstance(truth, np.ndarray) and truth is not None:
             raise TypeError('\'truth\' should be a \'numpy.ndarray\'.')
         if not isinstance(return_histplot, bool):
             raise TypeError('\'return_histplot\' should be boolean.')
@@ -46,11 +46,11 @@ class AnomalyDetector:
             raise ValueError('The dataset must be tabular.')
         if A.shape[1] != self._in_features:
             raise ValueError('The dataset must have the same feature count.')
-        if not (truth is None or truth.dtype == np.bool):
+        if truth.dtype != np.bool and truth is not None:
             raise ValueError('\'truth\' must be of \'numpy.bool\'.')
-        if not (truth is None or truth.ndim == 1):
+        if truth.ndim != 1 and truth is not None:
             raise ValueError('\'truth\' must be 1-dimensional.')
-        if not (truth is None or len(truth) == len(A)):
+        if len(truth) != len(A) and truth is not None:
             raise ValueError('\'truth\' must have the same length as the dataset.')
         if truth is None and return_histplot:
             raise ValueError('\'return_histplot\' is valid only when the truth is given.')
