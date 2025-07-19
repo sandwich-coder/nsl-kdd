@@ -26,7 +26,6 @@ class Sampler:
         if size > A.shape[axis]:
             logger.warning('The sample size is bigger than the sampled.')
             size = A.shape[axis]
-        A = A.copy()
 
         index = np.random.choice(
             A.shape[axis],

@@ -11,10 +11,9 @@ logging.basicConfig(level = 'INFO')
 from sklearn.model_selection import train_test_split
 
 from loader import Loader
-from models import Autoencoder
-from trainer import Trainer
+from autoencoder import Autoencoder
 from anomaly_detector import AnomalyDetector
-from utils import Sampler, DimensionEstimator
+from utils import Sampler
 
 
 # - gpu driver check -
@@ -41,9 +40,6 @@ elif float(supported_cuda) < float(torch.version.cuda):
 else:
     logger.info('- Nvidia driver checked -')
 
-#directories prepared
-os.makedirs('figures', exist_ok = True)
-
 
 dataset = 'nsl-kdd'
 
@@ -52,53 +48,36 @@ loader = Loader()
 normal, normal_ = loader.load(dataset, benign = True)
 anomalous, anomalous_ = loader.load(dataset, benign = False)
 
+
+# - prepared -
+
+sampler = Sampler()
+
+mixed = np.concatenate([normal, anomalous], axis = 0)
+truth = np.ones(mixed.shape[0], dtype = 'int64')
+truth[:len(normal)] = 0
+truth = truth.astype('bool')
+
+mixed_ = np.concatenate([normal_, anomalous_], axis = 0)
+truth_ = np.ones(mixed_.shape[0], dtype = 'int64')
+truth_[:len(normal_)] = 0
+truth_ = truth_.astype('bool')
+
+
 #training set
 X = normal.copy()
 X_ = normal_.copy()
-
-"""
-#dimension estimation
-estimator = DimensionEstimator()
-dimension = estimator(X, exact = True, trim = True)
-logger.info('intrinsic dimension: {dimension}'.format(
-    dimension = dimension,
-    ))
-"""
 
 #model
 ae = Autoencoder()
 
 #trained
-trainer = Trainer()
-trainer.train(X, ae)
-descent = trainer.plot_descent()
-
-descent.savefig('figures/descent.png', dpi = 300)
+ae.compile()
+descent = ae.fit(X, return_descentplot = True)
 
 
-# - detection -
-
-sampler = Sampler()
-
-mixed = np.concatenate([
-    normal,
-    anomalous,
-    ], axis = 0)
-mixed_ = np.concatenate([
-    normal_,
-    anomalous_,
-    ], axis = 0)
-
-truth = np.ones(mixed.shape[0], dtype = 'int64')
-truth[:len(normal)] = 0
-truth = truth.astype('bool')
-
-truth_ = np.ones(mixed_.shape[0], dtype = 'int64')
-truth_[:len(normal_)] = 0
-truth_ = truth_.astype('bool')
-
-detector = AnomalyDetector(X, ae, trainer.LossFn, quantile = 0.99)
-
+#detection
+detector = AnomalyDetector(X, ae, ae.get_LossFn(), quantile = 0.99)
 print('\n')
 print(' --- Train ---\n')
 prediction, reconstructions = detector.predict(mixed, truth, return_histplot = True)
@@ -106,5 +85,8 @@ print('\n')
 print(' --- Test ---\n')
 prediction_, reconstructions_ = detector.predict(mixed_, truth_, return_histplot = True)
 
+#saved
+os.makedirs('figures', exist_ok = True)
+descent.savefig('figures/descent.png', dpi = 300)
 reconstructions.savefig('figures/reconstructions-train.png', dpi = 300)
 reconstructions_.savefig('figures/reconstructions-test.png', dpi = 300)

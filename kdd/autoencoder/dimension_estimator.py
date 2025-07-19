@@ -42,7 +42,6 @@ class DimensionEstimator:
             logger.error('The number of divisions higher than 100 will be meaningless.')
         if trim:
             logger.info('The dataset is trimmed by the isolation forest.')
-        X = X.copy()
 
         #trimmed
         if trim:

@@ -19,29 +19,20 @@ class AnomalyDetector:
         if X.dtype != np.float64:
             logger.warning('The dtype doesn\'t match.')
             X = X.astype('float64')
-        X = X.copy()
 
-        #initialized
-        self._ae = None
-        self._LossFn = None
-        self._threshold = None
-        self._in_features = None
+        self._ae = ae
+        self._LossFn = LossFn
+        self._in_features = X.shape[1]
 
-        loss_fn = LossFn(reduction = 'none')
-        normal_data = ae.process(X, train = False)
+        loss_fn = self._LossFn(reduction = 'none')
+        normal_data = self._ae.process(X, train = False)
         
-        normal_loss = loss_fn(ae(normal_data).detach(), normal_data)    ###
+        normal_loss = loss_fn(self._ae(normal_data).detach(), normal_data)    ###
         _ = normal_loss.numpy()
         normal_loss = _.astype('float64')
         normal_loss = normal_loss.mean(axis = 1, dtype = 'float64')
 
-        threshold = np.quantile(normal_loss, quantile, axis = 0).tolist()
-
-        #pushed
-        self._ae = ae
-        self._LossFn = LossFn
-        self._threshold = threshold
-        self._in_features = X.shape[1]
+        self._threshold = np.quantile(normal_loss, quantile, axis = 0).tolist()
 
     def __repr__(self):
         return 'anomaly detector'
@@ -68,28 +59,17 @@ class AnomalyDetector:
         if A.dtype != np.float64:
             logging.warning('The dtype doesn\'t match.')
             A = A.astype('float64')
-        if self._ae is None:
-            raise NotImplementedError('The autoencoder has not been constructed.')
-        if self._LossFn is None:
-            raise NotImplementedError('The loss function has not been constructed.')
-        if self._threshold is None:
-            raise NotImplementedError('The threshold has not been set.')
-        A = A.copy()
-        ae = self._ae    #pulled
-        LossFn = self._LossFn    #pulled
-        threshold = self._threshold    #pulled
-
         returns = []
 
-        loss_fn = LossFn(reduction = 'none')
-        data = ae.process(A, train = False)
+        loss_fn = self._LossFn(reduction = 'none')
+        data = self._ae.process(A, train = False)
 
-        loss = loss_fn(ae(data).detach(), data)    ###
+        loss = loss_fn(self._ae(data).detach(), data)    ###
         _ = loss.numpy()
         loss = _.astype('float64')
         loss = loss.mean(axis = 1, dtype = 'float64')
 
-        prediction = loss >= threshold
+        prediction = loss >= self._threshold
         returns.append(prediction)
 
         if truth is not None:
@@ -119,21 +99,19 @@ class AnomalyDetector:
 
                 ax.axvline(
                     x = losses[losses['truth'] == False]['loss'].quantile(0.9),
-                    ymax = 0.7,
-                    linestyle = '-.', linewidth = 1,
+                    linestyle = '-.',
                     color = 'tab:grey',
                     label = 'Q 0.9',
                     )
                 ax.axvline(
                     x = losses[losses['truth'] == False]['loss'].quantile(0.99),
-                    ymax = 0.7,
-                    linestyle = '-.', linewidth = 1,
+                    linestyle = '-.',
                     color = 'tab:brown',
                     label = 'Q 0.99',
                     )
                 ax.axvline(
-                    x = threshold,
-                    linestyle = '--', linewidth = 1.5,
+                    x = self._threshold,
+                    linestyle = '--',
                     color = 'black',
                     label = 'threshold',
                     )
@@ -142,13 +120,13 @@ class AnomalyDetector:
                 returns.append(fig)
 
 
-            print('      Precision: {precision}'.format(
+            print('Precision: {precision}'.format(
                 precision = round(precision_score(truth, prediction), ndigits = 3),
                 ))
-            print('         Recall: {recall}'.format(
+            print('   Recall: {recall}'.format(
                 recall = round(recall_score(truth, prediction), ndigits = 3),
                 ))
-            print('             F1: {f1}'.format(
+            print('       F1: {f1}'.format(
                 f1 = round(f1_score(truth, prediction), ndigits = 3),
                 ))
 
