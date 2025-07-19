@@ -92,7 +92,7 @@ class Autoencoder(nn.Module):
         if not issubclass(LossFn, nn.Module):
             raise TypeError('The loss function should be a subclass of \'torch.nn.Module\'.')
 
-        self._trainer = Trainer(LossFn = LossFn)
+        self._trainer = Trainer(LossFn)
 
 
     def fit(self, X, return_descentplot = False, auto_latent = False):
