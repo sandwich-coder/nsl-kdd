@@ -16,9 +16,7 @@ class AnomalyDetector:
             raise TypeError('The loss quantile should be a float.')
         if not 0 < quantile < 1:
             raise ValueError('The quantile must be between 0 and 1.')
-        if X.dtype != np.float64:
-            logger.warning('The dtype doesn\'t match.')
-            X = X.astype('float64')
+        assert X.dtype == np.float64, 'The dtype doesn\'t match.'
 
         self._ae = ae
         self._LossFn = LossFn
@@ -56,9 +54,7 @@ class AnomalyDetector:
             raise ValueError('\'truth\' must have the same length as the dataset.')
         if truth is None and return_histplot:
             raise ValueError('\'return_histplot\' is valid only when the truth is given.')
-        if A.dtype != np.float64:
-            logging.warning('The dtype doesn\'t match.')
-            A = A.astype('float64')
+        assert A.dtype == np.float64, 'The dtype doesn\'t match.'
         returns = []
 
         loss_fn = self._LossFn(reduction = 'none')

@@ -36,8 +36,7 @@ class DimensionEstimator:
             raise ValueError('\'divisions\' must be greater than 1.')
         if batch_count < 1:
             raise ValueError('\'batch_count\' must be positive.')
-        if X.dtype != np.float64:
-            logger.warning('The dtype doesn\'t match.')
+        assert X.dtype == np.float64, 'The dtype doesn\'t match.'
         if divisions > 100:
             logger.error('The number of divisions higher than 100 will be meaningless.')
         if trim:
