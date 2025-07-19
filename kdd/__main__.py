@@ -11,7 +11,7 @@ logging.basicConfig(level = 'INFO')
 from sklearn.model_selection import train_test_split
 
 from loader import Loader
-from autoencoder import Autoencoder
+from models import Autoencoder
 from anomaly_detector import AnomalyDetector
 from utils import Sampler
 

@@ -48,7 +48,7 @@ class Trainer:
         #to gpu
         data = data.to(device)
         self._ae.to(device)
-        logger.info('\'device\' is allocated to \'data\' and \'model\'.')
+        logger.info('\'device\' is allocated to the dataset and model.')
 
         #configured
         optimizer = Optimizer(
