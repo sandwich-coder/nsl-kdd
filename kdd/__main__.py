@@ -73,11 +73,11 @@ ae = Autoencoder()
 
 #trained
 ae.compile()
-descent = ae.fit(X, return_descentplot = True)
+descent = ae.fit(X, return_descentplot = True, auto_latent = True)
 
 
 #detection
-detector = AnomalyDetector(X, ae, ae.get_LossFn(), quantile = 0.95)
+detector = AnomalyDetector(X, ae, ae.get_LossFn(), quantile = 0.9)
 print('\n')
 print(' --- Train ---\n')
 prediction, reconstructions = detector.predict(mixed, truth, return_histplot = True)

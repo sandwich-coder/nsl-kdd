@@ -143,13 +143,13 @@ class AnomalyDetector:
             print('false negative: {rate}%'.format(
                 rate = round(fn_rate * 100, ndigits = 1),
                 ))
-            print('Precision: {precision}'.format(
+            print('     Precision: {precision}'.format(
                 precision = round(precision_score(truth, prediction), ndigits = 3),
                 ))
-            print('   Recall: {recall}'.format(
+            print('        Recall: {recall}'.format(
                 recall = round(recall_score(truth, prediction), ndigits = 3),
                 ))
-            print('       F1: {f1}'.format(
+            print('            F1: {f1}'.format(
                 f1 = round(f1_score(truth, prediction), ndigits = 3),
                 ))
 
