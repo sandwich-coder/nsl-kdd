@@ -137,10 +137,10 @@ class AnomalyDetector:
                 returns.append(fig)
 
 
-            print('false positive: {rate}%'.format(
+            print('false positive: {rate:>4}%'.format(
                 rate = round(fp_rate * 100, ndigits = 1),
                 ))
-            print('false negative: {rate}%'.format(
+            print('false negative: {rate:>4}%'.format(
                 rate = round(fn_rate * 100, ndigits = 1),
                 ))
             print('     Precision: {precision}'.format(
