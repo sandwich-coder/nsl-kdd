@@ -1,5 +1,3 @@
-# Need be fixed.
-
 from environment import *
 logger = logging.getLogger(name = __name__)
 from scipy.spatial.distance import cdist
@@ -16,13 +14,13 @@ class DimensionEstimator:
 
     def __call__(
         self,
-        X,
+        X_in,
         exact = False,
         trim = False,
         divisions = 10,
         batch_count = 1000,
         ):
-        if not isinstance(X, np.ndarray):
+        if not isinstance(X_in, np.ndarray):
             raise TypeError('The input should be a \'numpy.ndarray\'.')
         if not isinstance(exact, bool):
             raise TypeError('Whether exact without rounding should be boolean.')
@@ -32,20 +30,22 @@ class DimensionEstimator:
             raise TypeError('The number of divisions should be an integer.')
         if not isinstance(batch_count, int):
             raise TypeError('The number of batches should be an integer.')
-        if X.ndim != 2:
+        if X_in.ndim != 2:
             raise ValueError('The input must be tabular.')
         if divisions < 2:
             raise ValueError('\'divisions\' must be greater than 1.')
         if batch_count < 1:
             raise ValueError('\'batch_count\' must be positive.')
-        if X.dtype != np.float64:
-            logger.warning('The dtype doesn\'t match.')
-            X = X.astype('float64')
         if divisions > 100:
             logger.error('The number of divisions higher than 100 will be meaningless.')
         if trim:
             logger.info('The dataset is trimmed by the isolation forest.')
-        X = X.copy()
+        
+        if X_in.dtype != np.float64:
+            logger.warning('The dtype doesn\'t match.')
+            X = X_in.astype('float64')
+        else:
+            X = X_in.copy()
 
         #trimmed
         if trim:
