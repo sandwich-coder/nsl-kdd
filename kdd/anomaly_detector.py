@@ -90,46 +90,24 @@ class AnomalyDetector:
                 ax.set_box_aspect(0.6),
                 ax.set_title('Reconstruction Losses')
                 ax.set_xlabel('loss')
+                ax.set_ylabel('proportion (%)')
                 pp.setp(ax.get_yticklabels(), rotation = 90, va = 'center')
 
                 losses = pd.DataFrame({
                     'loss': loss,
                     'truth': truth,
-                    'label': np.where(truth, 'anomalous', 'normal'),
+                    'label': np.where(~truth, 'normal', 'anomalous'),
                     })
 
-                """
                 sb.histplot(
                     data = losses,
                     x = 'loss',
                     hue = 'label',
-                    palette = {'anomalous':'tab:red', 'normal':'tab:blue'},
+                    palette = {'normal':'tab:blue', 'anomalous':'tab:red'},
                     bins = 500,
                     binrange = [0, 1],
                     stat = 'percent', common_norm = False,
                     ax = ax,
-                    )
-                """
-
-                binrange = [0, 1]
-                bins = 500
-                binwidth = (binrange[1] - binrange[0]) / bins
-
-                plot_1 = ax.hist(
-                    loss[truth],
-                    range = binrange,
-                    bins = bins,
-                    density = True,
-                    color = 'tab:red', alpha = 0.3,
-                    label = 'anomalous',
-                    )
-                plot_2 = ax.hist(
-                    loss[~truth],
-                    range = binrange,
-                    bins = bins,
-                    density = True,
-                    color = 'tab:blue', alpha = 0.3,
-                    label = 'normal',
                     )
 
                 ax.axvline(
@@ -150,8 +128,6 @@ class AnomalyDetector:
                     color = 'black',
                     label = 'threshold',
                     )
-
-                ax.legend()
 
                 returns.append(fig)
 
