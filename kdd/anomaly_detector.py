@@ -72,22 +72,15 @@ class AnomalyDetector:
         prediction = loss >= self._threshold
         returns.append(prediction)
 
-        tp = prediction & truth
-        fp = prediction & ~truth
+        positives = truth.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+        fn = truth & ~prediction
+        fn = fn.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+        fn_rate = fn / positives
 
-        tn = ~prediction & ~truth
-        fn = ~prediction & truth
-
-        tp = tp.astype('int64').sum(axis = 0, dtype = 'int64')
-        fp = fp.astype('int64').sum(axis = 0, dtype = 'int64')
-        tn = tn.astype('int64').sum(axis = 0, dtype = 'int64')
-        fn = fn.astype('int64').sum(axis = 0, dtype = 'int64')
-
-        fp_rate = fp / (tp + fp)
-        fn_rate = fn / (tn + fn)
-
-        fp_rate = fp_rate.tolist()
-        fn_rate = fn_rate.tolist()
+        negatives = (~truth).astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+        fp = ~truth & prediction
+        fp = fp.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+        fp_rate = fp / negatives
 
         if truth is not None:
 
@@ -103,36 +96,40 @@ class AnomalyDetector:
                 losses = pd.DataFrame({
                     'loss': loss,
                     'truth': truth,
+                    'label': np.where(truth, 'anomalous', 'normal'),
                     })
                 sb.histplot(
                     data = losses,
                     x = 'loss',
-                    hue = 'truth',
+                    hue = 'label',
+                    palette = {'anomalous':'tab:red', 'normal':'tab:blue'},
                     bins = 500,
                     binrange = [0, 1],
                     stat = 'percent', common_norm = False,
                     ax = ax,
                     )
 
+                """
                 ax.axvline(
                     x = losses[losses['truth'] == False]['loss'].quantile(0.9),
-                    linestyle = '-.',
+                    linestyle = '-.', linewidth = 0.2,
                     color = 'tab:grey',
                     label = 'Q 0.9',
                     )
                 ax.axvline(
                     x = losses[losses['truth'] == False]['loss'].quantile(0.99),
-                    linestyle = '-.',
+                    linestyle = '-.', linewidth = 0.2,
                     color = 'tab:brown',
                     label = 'Q 0.99',
                     )
                 ax.axvline(
                     x = self._threshold,
-                    linestyle = '--',
+                    linestyle = '--', linewidth = 0.2,
                     color = 'black',
                     label = 'threshold',
                     )
                 ax.legend()
+                """
 
                 returns.append(fig)
 
