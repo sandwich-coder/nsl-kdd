@@ -12,7 +12,6 @@ from sklearn.model_selection import train_test_split
 
 from loader import Loader
 from models import Autoencoder
-from anomaly_detector import AnomalyDetector
 from utils import Sampler
 
 
@@ -73,16 +72,16 @@ ae = Autoencoder()
 
 #trained
 ae.compile()
-descent = ae.fit(X, return_descentplot = True)
+descent = ae.fit(X, return_descentplot = True, q_threshold = 0.9)
 
 #detection
-detector = AnomalyDetector(X, ae, ae.get_LossFn(), quantile = 0.9)
+
 print('\n')
 print(' --- Train ---\n')
-prediction, reconstructions = detector.predict(mixed, truth, return_histplot = True)
+prediction, reconstructions = ae.detect(mixed, truth, return_histplot = True)
 print('\n')
 print(' --- Test ---\n')
-prediction_, reconstructions_ = detector.predict(mixed_, truth_, return_histplot = True)
+prediction_, reconstructions_ = ae.detect(mixed_, truth_, return_histplot = True)
 
 #saved
 os.makedirs('figures', exist_ok = True)
