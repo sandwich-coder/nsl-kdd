@@ -87,5 +87,5 @@ prediction_, reconstructions_ = detector.predict(mixed_, truth_, return_histplot
 #saved
 os.makedirs('figures', exist_ok = True)
 descent.savefig('figures/descent.png', dpi = 300)
-reconstructions.savefig('figures/reconstructions-train.png', dpi = 500)
-reconstructions_.savefig('figures/reconstructions-test.png', dpi = 500)
+reconstructions.savefig('figures/reconstructions-train.png', dpi = 600)
+reconstructions_.savefig('figures/reconstructions-test.png', dpi = 600)
