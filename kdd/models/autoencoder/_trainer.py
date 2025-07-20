@@ -44,11 +44,12 @@ class Trainer:
 
         #processed
         data = self._ae.process(X)
+        logger.info('data size: {}'.format(tuple(data.size())))
 
         #to gpu
         data = data.to(device)
         self._ae.to(device)
-        logger.info('\'device\' is allocated to the dataset and model.')
+        logger.info('\'device\' is allocated to the data and model.')
 
         #configured
         optimizer = Optimizer(

@@ -120,7 +120,7 @@ class Autoencoder(nn.Module):
             dimension = estimator(X, exact = True, trim = True)
             logger.info('intrinsic dimension: {}'.format(round(dimension, ndigits = 2)))
             self._latent = round(dimension)
-        logger.info('The latent dimension is set to {}'.format(self._latent))
+        logger.info('The latent dimension is set to {}.'.format(self._latent))
 
         self._trainer.train(X, self)
 
