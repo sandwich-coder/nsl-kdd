@@ -90,7 +90,6 @@ class AnomalyDetector:
                 ax.set_box_aspect(0.6),
                 ax.set_title('Reconstruction Losses')
                 ax.set_xlabel('loss')
-                ax.set_ylabel('proportion (%)')
                 pp.setp(ax.get_yticklabels(), rotation = 90, va = 'center')
 
                 losses = pd.DataFrame({
@@ -98,6 +97,8 @@ class AnomalyDetector:
                     'truth': truth,
                     'label': np.where(truth, 'anomalous', 'normal'),
                     })
+
+                """
                 sb.histplot(
                     data = losses,
                     x = 'loss',
@@ -108,8 +109,29 @@ class AnomalyDetector:
                     stat = 'percent', common_norm = False,
                     ax = ax,
                     )
-
                 """
+
+                binrange = [0, 1]
+                bins = 500
+                binwidth = (binrange[1] - binrange[0]) / bins
+
+                plot_1 = ax.hist(
+                    loss[truth],
+                    range = binrange,
+                    bins = bins,
+                    density = True,
+                    color = 'tab:red', alpha = 0.3,
+                    label = 'anomalous',
+                    )
+                plot_2 = ax.hist(
+                    loss[~truth],
+                    range = binrange,
+                    bins = bins,
+                    density = True,
+                    color = 'tab:blue', alpha = 0.3,
+                    label = 'normal',
+                    )
+
                 ax.axvline(
                     x = losses[losses['truth'] == False]['loss'].quantile(0.9),
                     linestyle = '-.', linewidth = 0.2,
@@ -128,8 +150,8 @@ class AnomalyDetector:
                     color = 'black',
                     label = 'threshold',
                     )
+
                 ax.legend()
-                """
 
                 returns.append(fig)
 
