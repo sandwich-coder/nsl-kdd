@@ -72,6 +72,23 @@ class AnomalyDetector:
         prediction = loss >= self._threshold
         returns.append(prediction)
 
+        tp = prediction & truth
+        fp = prediction & ~truth
+
+        tn = ~prediction & ~truth
+        fn = ~prediction & truth
+
+        tp = tp.astype('int64').sum(axis = 0, dtype = 'int64')
+        fp = fp.astype('int64').sum(axis = 0, dtype = 'int64')
+        tn = tn.astype('int64').sum(axis = 0, dtype = 'int64')
+        fn = fn.astype('int64').sum(axis = 0, dtype = 'int64')
+
+        fp_rate = fp / (tp + fp)
+        fn_rate = fn / (tn + fn)
+
+        fp_rate = fp_rate.tolist()
+        fn_rate = fn_rate.tolist()
+
         if truth is not None:
 
             if return_histplot:
@@ -120,6 +137,12 @@ class AnomalyDetector:
                 returns.append(fig)
 
 
+            print('false positive: {rate}%'.format(
+                rate = round(fp_rate * 100, ndigits = 1),
+                ))
+            print('false negative: {rate}%'.format(
+                rate = round(fn_rate * 100, ndigits = 1),
+                ))
             print('Precision: {precision}'.format(
                 precision = round(precision_score(truth, prediction), ndigits = 3),
                 ))
