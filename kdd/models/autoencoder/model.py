@@ -203,12 +203,12 @@ class Autoencoder(nn.Module):
                 #normal pmf
                 normal_loss = loss[~truth]
                 prob_normal, edge_normal = np.histogram(normal_loss, range = binrange, bins = bincount)
-                prob_normal = prob_normal / len(prob_normal)
+                prob_normal = prob_normal / prob_normal.sum(axis = 0, dtype = 'int64')
 
                 #anomalous pmf
                 anomalous_loss = loss[truth]
                 prob_anomalous, edge_anomalous = np.histogram(anomalous_loss, range = binrange, bins = bincount)
-                prob_anomalous = prob_anomalous / len(prob_anomalous)
+                prob_anomalous = prob_anomalous / prob_anomalous.sum(axis = 0, dtype = 'int64')
 
                 #histogram plots
                 plot_1 = ax.stairs(

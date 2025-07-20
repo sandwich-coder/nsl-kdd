@@ -1,7 +1,7 @@
 from environment import *
 logger = logging.getLogger(name = __name__)
 
-def _make_nsl_kdd(benign, merge):
+def _make_nsl_kdd(attack, merge):
     df = pd.read_csv('datasets/nsl-kdd/train.csv', header = 0, index_col = None)
     df_ = pd.read_csv('datasets/nsl-kdd/test.csv', header = 0, index_col = None)
 
@@ -31,7 +31,7 @@ def _make_nsl_kdd(benign, merge):
     anomalous_.drop(columns = ['attack'], inplace = True)
     anomalous_ = anomalous_.to_numpy(dtype = 'float64', copy = False)
 
-    if not benign:
+    if attack:
         if merge:
             return np.concatenate([anomalous, anomalous_], axis = 0)
         else:
@@ -51,13 +51,13 @@ class Loader:
     def __repr__(self):
         return 'loader'
 
-    def load(self, name, benign = True, merge = False):
+    def load(self, name, attack = False, merge = False):
         if not isinstance(name, str):
             raise TypeError('The name of dataset should be a string.')
-        if not isinstance(benign, bool):
-            raise TypeError('\'benign\' should be boolean.')
+        if not isinstance(attack, bool):
+            raise TypeError('\'attack\' should be boolean.')
         if not isinstance(merge, bool):
             raise TypeError('Whether to merge should be boolean.')
 
         if name == 'nsl-kdd':
-            return _make_nsl_kdd(benign, merge)
+            return _make_nsl_kdd(attack, merge)

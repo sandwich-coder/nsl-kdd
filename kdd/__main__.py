@@ -44,8 +44,8 @@ dataset = 'nsl-kdd'
 
 #loaded
 loader = Loader()
-normal, normal_ = loader.load(dataset, benign = True)
-anomalous, anomalous_ = loader.load(dataset, benign = False)
+normal, normal_ = loader.load(dataset, attack = False)
+anomalous, anomalous_ = loader.load(dataset, attack = True)
 
 
 # - prepared -
