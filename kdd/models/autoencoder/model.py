@@ -201,7 +201,7 @@ class Autoencoder(nn.Module):
                 binrange = [0, 1]
 
                 #normal pmf
-                normal_loss = loss[~truth]
+                normal_loss = loss[~truth]    # Simple indexing, which includes slicing, returns a view, or a shallow copy in other words. However, "fancy indexing" returns a copy instead of a view, differing from the numpy's usual indexing behavior one would expect. Therefore the names are separated without copying.
                 prob_normal, edge_normal = np.histogram(normal_loss, range = binrange, bins = bincount)
                 prob_normal = prob_normal / prob_normal.sum(axis = 0, dtype = 'int64')
 
@@ -226,6 +226,7 @@ class Autoencoder(nn.Module):
                     label = 'anomalous',
                     )
 
+                #Q points
                 ax.axvline(
                     x = np.quantile(normal_loss, 0.9),
                     linestyle = '-.', linewidth = 0.2,
