@@ -1,5 +1,6 @@
 from environment import *
 logger = logging.getLogger(name = __name__)
+console = Console()
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -66,6 +67,10 @@ class Trainer:
             )
         self._batchloss = []
         logger.info(' - Training Start -')
+        if logger.getEffectiveLevel() > 20:
+            pass
+        else:
+            console.print('  [underline]Epoch       Loss[underline]')
         for lll in range(epochs):
             self._ae.train()
             last_epoch = []
@@ -93,7 +98,7 @@ class Trainer:
             if logger.getEffectiveLevel() > 20:
                 pass
             else:
-                print('Epoch {epoch:>3} | loss: {epochloss:<7}'.format(
+                print('{epoch:>7} | {epochloss:<8}'.format(
                     epoch = lll + 1,
                     epochloss = last_epoch.mean(axis = 0, dtype = 'float64').round(decimals = 6),
                     ))
