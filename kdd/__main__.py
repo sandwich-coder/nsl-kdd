@@ -1,14 +1,30 @@
 import sys, os, subprocess
+import argparse
 
 #python check
 if sys.version_info[:2] != (3, 12):
     raise RuntimeError('This module is intended to be run on Python 3.12.')
 
 
+# - console input -
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--resplit', help = 'whether to merge the train and test sets and resplit randomly, retaining the attack type distribution.', default = 'False')
+parser.add_argument('--qthreshold', help = 'the quantile threshold above which the reconstruction loss is deemed as anomalous', default = '0.99')
+parser.add_argument('--log', help = 'logging level', default = 'INFO')
+args = parser.parse_args()
+
+if args.resplit == 'True':
+    resplit = True
+elif args.resplit == 'False':
+    resplit = False
+q_threshold = float(args.qthreshold)
+logging_level = args.log
+
+
 from environment import *
 logger = logging.getLogger(name = 'main')
-logging.basicConfig(level = 'INFO')
-from sklearn.model_selection import train_test_split
+logging.basicConfig(level = logging_level)
 
 from loader import Loader
 from models import Autoencoder
@@ -44,13 +60,15 @@ dataset = 'nsl-kdd'
 
 #loaded
 loader = Loader()
-normal, normal_ = loader.load(dataset, attack = False)
-anomalous, anomalous_ = loader.load(dataset, attack = True)
+normal, normal_ = loader.load(dataset, attack = False, resplit = resplit)
+anomalous, anomalous_ = loader.load(dataset, attack = True, resplit = resplit)
+
+#for traditional ML
+normal_df, normal_df_ = loader.load(dataset, attack = False, resplit = resplit, raw = True)
+anomalous_df, anomalous_df_ = loader.load(dataset, attack = True, resplit = resplit, raw = True)
 
 
 # - prepared -
-
-sampler = Sampler()
 
 mixed = np.concatenate([normal, anomalous], axis = 0)
 truth = np.ones(mixed.shape[0], dtype = 'int64')
@@ -72,7 +90,7 @@ ae = Autoencoder()
 
 #trained
 ae.compile()
-descent = ae.fit(X, return_descentplot = True, q_threshold = 0.9)
+descent = ae.fit(X, return_descentplot = True, q_threshold = q_threshold)
 
 #detection
 

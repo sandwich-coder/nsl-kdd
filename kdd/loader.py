@@ -1,19 +1,53 @@
 from environment import *
 logger = logging.getLogger(name = __name__)
+from sklearn.model_selection import train_test_split
 
-def _make_nsl_kdd(attack, merge):
+def _make_nsl_kdd(attack, resplit, raw):
     df = pd.read_csv('datasets/nsl-kdd/train.csv', header = 0, index_col = None)
     df_ = pd.read_csv('datasets/nsl-kdd/test.csv', header = 0, index_col = None)
 
-    temp = pd.concat([df, df_], axis = 'index')
+    if resplit:
+        temp = pd.concat([df, df_], axis = 'index')
+        df, df_ = train_test_split(
+            temp,
+            test_size = 0.2,
+            shuffle = True,
+            stratify = temp['attack'],
+            random_state = 1,
+            )
+
+
+    if raw:
+
+        normal = df[df['attack'] == 'normal'].copy()
+        normal.drop(columns = ['attack'], inplace = True)
+
+        normal_ = df_[df_['attack'] == 'normal'].copy()
+        normal_.drop(columns = ['attack'], inplace = True)
+
+        anomalous = df[df['attack'] != 'normal'].copy()
+        anomalous.drop(columns = ['attack'], inplace = True)
+
+        anomalous_ = df_[df_['attack'] != 'normal'].copy()
+        anomalous_.drop(columns = ['attack'], inplace = True)
+
+        if attack:
+            return anomalous, anomalous_
+        else:
+            return normal, normal_
+
+
+
+    #one-hot
+    merged = pd.concat([df, df_], axis = 'index')
     categorical = [
         'protocol_type',
         'service',
         'flag',
         ]
-    temp = pd.get_dummies(temp, columns = categorical)
-    df = temp.iloc[:df.shape[0], :]
-    df_ = temp.iloc[df.shape[0]:, :]
+    merged = pd.get_dummies(merged, columns = categorical)
+    df = merged.iloc[:df.shape[0], :]
+    df_ = merged.iloc[df.shape[0]:, :]
 
     normal = df[df['attack'] == 'normal'].copy()
     normal.drop(columns = ['attack'], inplace = True)
@@ -32,15 +66,9 @@ def _make_nsl_kdd(attack, merge):
     anomalous_ = anomalous_.to_numpy(dtype = 'float64', copy = False)
 
     if attack:
-        if merge:
-            return np.concatenate([anomalous, anomalous_], axis = 0)
-        else:
-            return anomalous, anomalous_
+        return anomalous, anomalous_
     else:
-        if merge:
-            return np.concatenate([normal, normal_], axis = 0)
-        else:
-            return normal, normal_
+        return normal, normal_
 
 
 
@@ -51,13 +79,20 @@ class Loader:
     def __repr__(self):
         return 'loader'
 
-    def load(self, name, attack = False, merge = False):
+    def load(self, name, attack = False, resplit = False, raw = False):
         if not isinstance(name, str):
             raise TypeError('The name of dataset should be a string.')
         if not isinstance(attack, bool):
             raise TypeError('\'attack\' should be boolean.')
-        if not isinstance(merge, bool):
-            raise TypeError('Whether to merge should be boolean.')
+        if not isinstance(resplit, bool):
+            raise TypeError('\'resplit\' should be boolean.')
+        if not isinstance(raw, bool):
+            raise TypeError('\'raw\' should be boolean.')
+
+        if raw:
+            pass
+        else:
+            logger.info('The categorical features in {} are one-hot-encoded.'.format(name))
 
         if name == 'nsl-kdd':
-            return _make_nsl_kdd(attack, merge)
+            return _make_nsl_kdd(attack, resplit, raw)

@@ -160,6 +160,8 @@ class Autoencoder(nn.Module):
             raise ValueError('\'return_histplot\' is valid only when the truth is given.')
         returns = []
 
+        logging.debug('input shape for detection: {}'.format(A.shape))
+
         #prepared
         loss_fn = self._trainer.LossFn(reduction = 'none')
         data = self.process(A, train = False)
