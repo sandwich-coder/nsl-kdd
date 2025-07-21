@@ -9,9 +9,17 @@ parser.add_argument('--log', help = 'logging level', default = 'INFO')
 
 args = parser.parse_args()
 
+
+#resplit
 if args.resplit == 'True':
     resplit = True
 elif args.resplit == 'False':
     resplit = False
+else:
+    raise ValueError('Only \'True\' and \'False\' are available for the \'--split\'.')
+
+#q_threshold
 q_threshold = float(args.qthreshold)
+
+#logging_level
 logging_level = args.log

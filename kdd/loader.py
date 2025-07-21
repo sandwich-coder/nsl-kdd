@@ -5,6 +5,14 @@ from sklearn.model_selection import train_test_split
 def _make_nsl_kdd(attack, resplit, raw):
     df = pd.read_csv('datasets/nsl-kdd/train.csv', header = 0, index_col = None)
     df_ = pd.read_csv('datasets/nsl-kdd/test.csv', header = 0, index_col = None)
+    categorical = [
+        'protocol_type',
+        'service',
+        'flag',
+        ]
+
+    for ll in categorical:
+        df[ll] = df[ll].astype('category')
 
     if resplit:
         temp = pd.concat([df, df_], axis = 'index')
@@ -13,7 +21,6 @@ def _make_nsl_kdd(attack, resplit, raw):
             test_size = 0.2,
             shuffle = True,
             stratify = temp['attack'],
-            random_state = 1,
             )
 
 
@@ -48,8 +55,9 @@ def _make_nsl_kdd(attack, resplit, raw):
     merged = pd.get_dummies(merged, columns = categorical)
     df = merged.iloc[:df.shape[0], :]
     df_ = merged.iloc[df.shape[0]:, :]
+    logger.info('The categorical features are one-hot-encoded.')
 
-    normal = df[df['attack'] == 'normal'].copy()
+    normal = df[df['attack'] == 'normal'].copy()    # Without copy the pandas prints a warning, not because it returns a view but it MIGHT return a view. I don't know what this means.
     normal.drop(columns = ['attack'], inplace = True)
     normal = normal.to_numpy(dtype = 'float64', copy = False)
 
@@ -88,11 +96,6 @@ class Loader:
             raise TypeError('\'resplit\' should be boolean.')
         if not isinstance(raw, bool):
             raise TypeError('\'raw\' should be boolean.')
-
-        if raw:
-            pass
-        else:
-            logger.info('The categorical features in {} are one-hot-encoded.'.format(name))
 
         if name == 'nsl-kdd':
             return _make_nsl_kdd(attack, resplit, raw)
