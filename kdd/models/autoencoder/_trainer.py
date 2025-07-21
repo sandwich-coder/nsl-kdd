@@ -70,7 +70,7 @@ class Trainer:
             pass
         else:
             print('Epoch |     Loss')
-            print('================')
+            print('===== | ========')
         for lll in range(epochs):
             self._ae.train()
             last_epoch = []

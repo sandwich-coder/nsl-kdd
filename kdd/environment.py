@@ -20,3 +20,4 @@ mpl.rcParams['legend.fontsize'] = 'x-small'
 mpl.rcParams['lines.markersize'] = 1
 mpl.rcParams['lines.linewidth'] = 0.5
 from rich.console import Console
+from rich.logging import RichHandler
