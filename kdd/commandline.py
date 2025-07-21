@@ -16,7 +16,7 @@ if args.resplit == 'True':
 elif args.resplit == 'False':
     resplit = False
 else:
-    raise ValueError('Only \'True\' and \'False\' are available for the \'--split\'.')
+    raise ValueError('Only \'True\' and \'False\' are available for the \'--resplit\'.')
 
 #q_threshold
 q_threshold = float(args.qthreshold)
