@@ -1,26 +1,15 @@
 import sys, os, subprocess
-import argparse
 
 #python check
 if sys.version_info[:2] != (3, 12):
     raise RuntimeError('This module is intended to be run on Python 3.12.')
 
 
-# - console input -
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--resplit', help = 'whether to merge the train and test sets and resplit randomly, retaining the attack type distribution.', default = 'False')
-parser.add_argument('--qthreshold', help = 'the quantile threshold above which the reconstruction loss is deemed as anomalous', default = '0.99')
-parser.add_argument('--log', help = 'logging level', default = 'INFO')
-args = parser.parse_args()
-
-if args.resplit == 'True':
-    resplit = True
-elif args.resplit == 'False':
-    resplit = False
-q_threshold = float(args.qthreshold)
-logging_level = args.log
-
+from commandline import (
+    resplit,
+    q_threshold,
+    logging_level,
+    )
 
 from environment import *
 logger = logging.getLogger(name = 'main')
