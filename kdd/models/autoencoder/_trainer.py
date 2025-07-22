@@ -98,7 +98,7 @@ class Trainer:
             if logger.getEffectiveLevel() > 20:
                 pass
             else:
-                print('{epoch:>5} | {epochloss:<8}'.format(
+                print(' {epoch:>4} | {epochloss:<8}'.format(
                     epoch = lll + 1,
                     epochloss = last_epoch.mean(axis = 0, dtype = 'float64').round(decimals = 6),
                     ))
