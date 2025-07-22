@@ -82,12 +82,9 @@ ae.compile()
 descent = ae.fit(X, return_descentplot = True, q_threshold = q_threshold)
 
 #detection
-
-print('\n')
-print(' --- Train ---\n')
+print('\n\n --- Train ---\n')
 prediction, reconstructions = ae.detect(mixed, truth, return_histplot = True)
-print('\n')
-print(' --- Test ---\n')
+print('\n\n --- Test ---\n')
 prediction_, reconstructions_ = ae.detect(mixed_, truth_, return_histplot = True)
 
 #saved
