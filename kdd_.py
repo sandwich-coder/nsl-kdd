@@ -213,7 +213,7 @@ for l in range(30):
     if logger.getEffectiveLevel() > 20:
         iteration = loader
     else:
-        iteration = tqdm(loader, leave = False, ncols = 70)
+        iteration = tqdm(loader, leave = False)
     for ll in iteration:
 
         out = ae(ll)
@@ -268,5 +268,3 @@ plot = ax.plot(
 ax.legend()
 descent = fig
 del batchloss, fig, ax, plot
-
-pp.show()
