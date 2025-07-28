@@ -213,7 +213,7 @@ for l in range(30):
     if logger.getEffectiveLevel() > 20:
         iteration = loader
     else:
-        iteration = tqdm(loader, leave = False)
+        iteration = tqdm(loader, leave = False, ncols = 70)
     for ll in iteration:
 
         out = ae(ll)
@@ -268,3 +268,36 @@ plot = ax.plot(
 ax.legend()
 descent = fig
 del batchloss, fig, ax, plot
+
+
+# - anomaly detection -
+
+#threshold set
+loss_fn = LossFn(reduction = 'none')
+normal_data = ae.process(X, train = False)
+normal_loss = loss_fn(ae(normal_data).detach(), normal_data)    ###
+_ = normal_loss.numpy()
+normal_loss = _.astype('float64')
+normal_loss = normal_loss.mean(axis = 1, dtype = 'float64')
+threshold = np.quantile(normal_loss, 0.99, axis = 0).tolist()
+
+#predicted
+mixed_data = ae.process(mixed, train = False)
+loss = loss_fn(ae(mixed_data).detach(), mixed_data)    ###
+_ = loss.numpy()
+loss = _.astype('float64')
+loss = loss.mean(axis = 1, dtype = 'float64')
+prediction = loss >= threshold
+del loss_fn, normal_data, normal_loss, threshold, mixed_data
+
+#false-negative
+positives = truth.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+fn = truth & ~prediction
+fn = fn.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+fn_rate = fn / positives
+
+#false-positive
+negatives = (~truth).astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+fp = ~truth & prediction
+fp = fp.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+fp_rate = fp / negatives

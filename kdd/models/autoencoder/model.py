@@ -12,14 +12,16 @@ class Autoencoder(nn.Module):
         super().__init__()
 
         self._in_features = 122
-        self._latent = 5
+        self._latent = 15
         self._encoder = nn.Sequential(
-            nn.Sequential(nn.Linear(self._in_features, 40), nn.GELU()),
-            nn.Sequential(nn.Linear(40, self._latent), nn.Sigmoid()),
+            nn.Sequential(nn.Linear(self._in_features, 1000), nn.GELU()),
+            nn.Sequential(nn.Linear(1000, 250), nn.GELU()),
+            nn.Sequential(nn.Linear(250, self._latent), nn.Sigmoid()),
             )
         self._decoder = nn.Sequential(
-            nn.Sequential(nn.Linear(self._latent, 40), nn.GELU()),
-            nn.Sequential(nn.Linear(40, self._in_features), nn.Sigmoid()),
+            nn.Sequential(nn.Linear(self._latent, 250), nn.GELU()),
+            nn.Sequential(nn.Linear(250, 1000), nn.GELU()),
+            nn.Sequential(nn.Linear(1000, self._in_features), nn.Sigmoid()),
             )
 
         with torch.no_grad():
@@ -200,7 +202,7 @@ class Autoencoder(nn.Module):
                 pp.setp(ax.get_yticklabels(), rotation = 90, va = 'center')
 
                 bincount = 500
-                binrange = [0, 1]
+                binrange = [0, 0.2]
 
                 #normal pmf
                 normal_loss = loss[~truth]    # Simple indexing, which includes slicing, returns a view, or a shallow copy in other words. However, "fancy indexing" returns a copy instead of a view, differing from the numpy's usual indexing behavior one would expect. Therefore the names are separated without copying.
