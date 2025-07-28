@@ -141,13 +141,16 @@ class Autoencoder(nn.Module):
             return self._trainer.plot_descent()
 
 
-    def detect(self, mix, truth = None, return_histplot = False):
+    def detect(self, mix, truth = None, return_histplot = False, LossFn = None):
         if not isinstance(mix, np.ndarray):
             raise TypeError('The dataset should be a \'numpy.ndarray\'.')
         if not isinstance(truth, np.ndarray) and truth is not None:
             raise TypeError('\'truth\' should be a \'numpy.ndarray\'.')
         if not isinstance(return_histplot, bool):
             raise TypeError('\'return_histplot\' should be boolean.')
+        if LossFn is not None:
+            if not issubclass(LossFn, nn.Module):
+                raise TypeError('The loss function should be a subclass of \'torch.nn.Module\'.')
         if mix.ndim != 2:
             raise ValueError('The dataset must be tabular.')
         if mix.shape[1] != self._in_features:
@@ -165,7 +168,10 @@ class Autoencoder(nn.Module):
         returns = []
 
         #prepared
-        loss_fn = self._trainer.LossFn(reduction = 'none')
+        if LossFn is not None:
+            loss_fn = LossFn(reduction = 'none')
+        else:
+            loss_fn = self._trainer.LossFn(reduction = 'none')
         data = self.process(mix, train = False)
 
         #loss measured

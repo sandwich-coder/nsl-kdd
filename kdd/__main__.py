@@ -83,9 +83,9 @@ descent = ae.fit(X, return_descentplot = True, q_threshold = q_threshold)
 
 #detection
 print('\n\n --- Train ---\n')
-prediction, reconstructions = ae.detect(mixed, truth, return_histplot = True)
+prediction, reconstructions = ae.detect(mixed, truth, return_histplot = True, LossFn = nn.L1Loss)
 print('\n\n --- Test ---\n')
-prediction_, reconstructions_ = ae.detect(mixed_, truth_, return_histplot = True)
+prediction_, reconstructions_ = ae.detect(mixed_, truth_, return_histplot = True, LossFn = nn.L1Loss)
 
 #saved
 os.makedirs('figures', exist_ok = True)
