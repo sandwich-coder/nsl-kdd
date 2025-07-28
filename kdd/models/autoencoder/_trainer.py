@@ -116,7 +116,7 @@ class Trainer:
         fig = pp.figure(layout = 'constrained', figsize = (10, 7.3))
         ax = fig.add_subplot()
         ax.set_box_aspect(0.7)
-        ax.set_title('Losses')
+        ax.set_title('Training Losses')
         ax.set_xlabel('batch')
         ax.set_ylabel('loss')
         pp.setp(ax.get_yticklabels(), rotation = 90, va = 'center')
