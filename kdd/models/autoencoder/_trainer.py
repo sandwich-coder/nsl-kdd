@@ -123,8 +123,8 @@ class Trainer:
 
         plot = ax.plot(
             np.arange(1, len(self._batchloss)+1, dtype = 'int64'), self._batchloss,
-            marker = 'o', markersize = 0.3,
-            linestyle = '--', linewidth = 0.05,
+            marker = 'o', markersize = 0.01,
+            linestyle = '--', linewidth = 0.005,
             color = 'slategrey',
             label = 'final: {final}'.format(
                 final = self._batchloss[-1].round(decimals = 4).tolist(),

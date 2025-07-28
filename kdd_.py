@@ -51,46 +51,32 @@ for l in categorical:
 #one-hot
 merged = pd.concat([df, df_], axis = 'index')
 merged = pd.get_dummies(merged, columns = categorical)
-df = merged.iloc[:df.shape[0], :]
-df_ = merged.iloc[df.shape[0]:, :]
+df_hot = merged.iloc[:df.shape[0], :]
+df_hot_ = merged.iloc[df.shape[0]:, :]
 logger.info('The categorical features are one-hot encoded.')
 
 #normal-train
-normal = df[df['attack'] == 'normal'].copy()
-normal.drop(columns = ['attack'], inplace = True)
-normal = normal.to_numpy(dtype = 'float64', copy = False)
+df_normal = df_hot[df_hot['attack'] == 'normal'].copy()
+df_normal.drop(columns = ['attack'], inplace = True)
 
 #normal-test
-normal_ = df_[df_['attack'] == 'normal'].copy()
-normal_.drop(columns = ['attack'], inplace = True)
-normal_ = normal_.to_numpy(dtype = 'float64', copy = False)
+df_normal_ = df_hot_[df_hot_['attack'] == 'normal'].copy()
+df_normal_.drop(columns = ['attack'], inplace = True)
 
 #anomalous-train
-anomalous = df[df['attack'] != 'normal'].copy()
-anomalous.drop(columns = ['attack'], inplace = True)
-anomalous = anomalous.to_numpy(dtype = 'float64', copy = False)
+df_anomalous = df_hot[df_hot['attack'] != 'normal'].copy()
+df_anomalous.drop(columns = ['attack'], inplace = True)
 
 #anomalous-test
-anomalous_ = df_[df_['attack'] != 'normal'].copy()
-anomalous_.drop(columns = ['attack'], inplace = True)
-anomalous_ = anomalous_.to_numpy(dtype = 'float64', copy = False)
-del df, df_, categorical, merged
+df_anomalous_ = df_hot_[df_hot_['attack'] != 'normal'].copy()
+df_anomalous_.drop(columns = ['attack'], inplace = True)
+del df_hot, df_hot_, categorical
 
-
-# - prepared -
-
-#train
-mixed = np.concatenate([normal, anomalous], axis = 0)
-truth = np.ones(mixed.shape[0], dtype = 'int64')
-truth[:len(normal)] = 0
-truth = truth.astype('bool')
-
-#test
-mixed_ = np.concatenate([normal_, anomalous_], axis = 0)
-truth_ = np.ones(mixed_.shape[0], dtype = 'int64')
-truth_[:len(normal_)] = 0
-truth_ = truth_.astype('bool')
-
+#to arrays
+normal = df_normal.to_numpy(dtype = 'float64', copy = True)
+normal_ = df_normal_.to_numpy(dtype = 'float64', copy = True)
+anomalous = df_anomalous.to_numpy(dtype = 'float64', copy = True)
+anomalous_ = df_anomalous_.to_numpy(dtype = 'float64', copy = True)
 
 #training set
 X = normal.copy()
@@ -191,7 +177,7 @@ optimizer = optim.AdamW(
     lr = 0.0001,
     eps = 1e-7,
     )
-LossFn = nn.L1Loss
+LossFn = nn.MSELoss
 loss_fn = LossFn()
 
 #training
@@ -207,7 +193,7 @@ if logger.getEffectiveLevel() > 20:
 else:
     print('Epoch |     Loss')
     print('===== | ========')
-for l in range(300):
+for l in range(30):
     ae.train()
     last_epoch = []
     if logger.getEffectiveLevel() > 20:
@@ -258,8 +244,8 @@ ax.set_ylabel('loss')
 pp.setp(ax.get_yticklabels(), rotation = 90, va = 'center')
 plot = ax.plot(
     np.arange(1, len(batchloss)+1, dtype = 'int64'), batchloss,
-    marker = 'o', markersize = 0.3,
-    linestyle = '--', linewidth = 0.05,
+    marker = 'o', markersize = 0.05,
+    linestyle = '--', linewidth = 0.02,
     color = 'slategrey',
     label = 'final: {}'.format(
         batchloss[-1].round(decimals = 4).tolist(),
@@ -282,49 +268,33 @@ del normal_data, normal_loss
 
 # - anomaly detection (train) -
 
-#prediction
-mixed_data = ae.process(mixed, train = False)
-loss = loss_fn(ae(mixed_data).detach(), mixed_data)    ###
+anomalous_data = ae.process(anomalous, train = False)
+loss = loss_fn(ae(anomalous_data).detach(), anomalous_data)    ###
 _ = loss.numpy()
 loss = _.astype('float64')
 loss = loss.mean(axis = 1, dtype = 'float64')
-prediction = loss >= threshold
-del mixed_data, loss
 
-#false-negative
-positives = truth.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-fn = truth & ~prediction
-fn = fn.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-fn_rate = fn / positives
+fn_index = np.arange(len(anomalous))
+fn_index = fn_index[loss < threshold]
+fn_index = df_anomalous.index.to_numpy(dtype = 'int64', copy = False)[fn_index]
+del anomalous_data, loss
 
-#false-positive
-negatives = (~truth).astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-fp = ~truth & prediction
-fp = fp.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-fp_rate = fp / negatives
-del positives, negatives
+fn_counts = df.loc[fn_index, 'attack']
+fn_counts = fn_counts.value_counts()
 
 
 # - anomaly detection (test) -
 
-#prediction
-mixed_data_ = ae.process(mixed_, train = False)
-loss_ = loss_fn(ae(mixed_data_).detach(), mixed_data_)    ###
+anomalous_data_ = ae.process(anomalous_, train = False)
+loss_ = loss_fn(ae(anomalous_data_).detach(), anomalous_data_)    ###
 _ = loss_.numpy()
 loss_ = _.astype('float64')
 loss_ = loss_.mean(axis = 1, dtype = 'float64')
-prediction_ = loss_ >= threshold
-del mixed_data_, loss_
 
-#false-negative
-positives_ = truth_.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-fn_ = truth_ & ~prediction_
-fn_ = fn_.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-fn_rate_ = fn_ / positives_
+fn_index_ = np.arange(len(anomalous_))
+fn_index_ = fn_index_[loss_ < threshold]
+fn_index_ = df_anomalous_.index.to_numpy(dtype = 'int64', copy = False)[fn_index_]
+del anomalous_data_, loss_
 
-#false-positive
-negatives_ = (~truth_).astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-fp_ = ~truth_ & prediction_
-fp_ = fp_.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-fp_rate_ = fp_ / negatives_
-del positives_, negatives_
+fn_counts_ = df_.loc[fn_index_, 'attack']
+fn_counts_ = fn_counts_.value_counts()

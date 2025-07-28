@@ -47,11 +47,6 @@ def _make_nsl_kdd(attack, resplit, raw):
 
     #one-hot
     merged = pd.concat([df, df_], axis = 'index')
-    categorical = [
-        'protocol_type',
-        'service',
-        'flag',
-        ]
     merged = pd.get_dummies(merged, columns = categorical)
     df = merged.iloc[:df.shape[0], :]
     df_ = merged.iloc[df.shape[0]:, :]

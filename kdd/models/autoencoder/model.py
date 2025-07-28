@@ -12,14 +12,16 @@ class Autoencoder(nn.Module):
         super().__init__()
 
         self._in_features = 122
-        self._latent = 15
+        self._latent = 10
         self._encoder = nn.Sequential(
             nn.Sequential(nn.Linear(self._in_features, 1000), nn.GELU()),
             nn.Sequential(nn.Linear(1000, 250), nn.GELU()),
-            nn.Sequential(nn.Linear(250, self._latent), nn.Sigmoid()),
+            nn.Sequential(nn.Linear(250, 62), nn.GELU()),
+            nn.Sequential(nn.Linear(62, self._latent), nn.Sigmoid()),
             )
         self._decoder = nn.Sequential(
-            nn.Sequential(nn.Linear(self._latent, 250), nn.GELU()),
+            nn.Sequential(nn.Linear(self._latent, 62), nn.GELU()),
+            nn.Sequential(nn.Linear(62, 250), nn.GELU()),
             nn.Sequential(nn.Linear(250, 1000), nn.GELU()),
             nn.Sequential(nn.Linear(1000, self._in_features), nn.Sigmoid()),
             )
@@ -139,34 +141,32 @@ class Autoencoder(nn.Module):
             return self._trainer.plot_descent()
 
 
-    def detect(self, A, truth = None, return_histplot = False):
-        if not isinstance(A, np.ndarray):
+    def detect(self, mix, truth = None, return_histplot = False):
+        if not isinstance(mix, np.ndarray):
             raise TypeError('The dataset should be a \'numpy.ndarray\'.')
         if not isinstance(truth, np.ndarray) and truth is not None:
             raise TypeError('\'truth\' should be a \'numpy.ndarray\'.')
         if not isinstance(return_histplot, bool):
             raise TypeError('\'return_histplot\' should be boolean.')
-        if A.ndim != 2:
+        if mix.ndim != 2:
             raise ValueError('The dataset must be tabular.')
-        if A.shape[1] != self._in_features:
+        if mix.shape[1] != self._in_features:
             raise ValueError('The dataset must have the same feature count.')
-        if A.dtype != np.float64:
+        if mix.dtype != np.float64:
             raise ValueError('The dataset must be of \'numpy.float64\'.')
         if truth.ndim != 1 and truth is not None:
             raise ValueError('\'truth\' must be 1-dimensional.')
         if truth.dtype != np.bool and truth is not None:
             raise ValueError('\'truth\' must be of \'numpy.bool\'.')
-        if len(truth) != len(A) and truth is not None:
+        if len(truth) != len(mix) and truth is not None:
             raise ValueError('\'truth\' must have the same length as the dataset.')
         if truth is None and return_histplot:
             raise ValueError('\'return_histplot\' is valid only when the truth is given.')
         returns = []
 
-        logger.debug('input shape for detection: {}'.format(A.shape))
-
         #prepared
         loss_fn = self._trainer.LossFn(reduction = 'none')
-        data = self.process(A, train = False)
+        data = self.process(mix, train = False)
 
         #loss measured
         loss = loss_fn(self(data).detach(), data)    ###
