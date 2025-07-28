@@ -191,7 +191,7 @@ optimizer = optim.AdamW(
     lr = 0.0001,
     eps = 1e-7,
     )
-LossFn = nn.MSELoss
+LossFn = nn.L1Loss
 loss_fn = LossFn()
 
 #training
@@ -207,7 +207,7 @@ if logger.getEffectiveLevel() > 20:
 else:
     print('Epoch |     Loss')
     print('===== | ========')
-for l in range(30):
+for l in range(300):
     ae.train()
     last_epoch = []
     if logger.getEffectiveLevel() > 20:
@@ -269,9 +269,6 @@ ax.legend()
 descent = fig
 del batchloss, fig, ax, plot
 
-
-# - anomaly detection -
-
 #threshold set
 loss_fn = LossFn(reduction = 'none')
 normal_data = ae.process(X, train = False)
@@ -280,15 +277,19 @@ _ = normal_loss.numpy()
 normal_loss = _.astype('float64')
 normal_loss = normal_loss.mean(axis = 1, dtype = 'float64')
 threshold = np.quantile(normal_loss, 0.99, axis = 0).tolist()
+del normal_data, normal_loss
 
-#predicted
+
+# - anomaly detection (train) -
+
+#prediction
 mixed_data = ae.process(mixed, train = False)
 loss = loss_fn(ae(mixed_data).detach(), mixed_data)    ###
 _ = loss.numpy()
 loss = _.astype('float64')
 loss = loss.mean(axis = 1, dtype = 'float64')
 prediction = loss >= threshold
-del loss_fn, normal_data, normal_loss, threshold, mixed_data
+del mixed_data, loss
 
 #false-negative
 positives = truth.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
@@ -301,3 +302,29 @@ negatives = (~truth).astype('int64').sum(axis = 0, dtype = 'int64').tolist()
 fp = ~truth & prediction
 fp = fp.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
 fp_rate = fp / negatives
+del positives, negatives
+
+
+# - anomaly detection (test) -
+
+#prediction
+mixed_data_ = ae.process(mixed_, train = False)
+loss_ = loss_fn(ae(mixed_data_).detach(), mixed_data_)    ###
+_ = loss_.numpy()
+loss_ = _.astype('float64')
+loss_ = loss_.mean(axis = 1, dtype = 'float64')
+prediction_ = loss_ >= threshold
+del mixed_data_, loss_
+
+#false-negative
+positives_ = truth_.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+fn_ = truth_ & ~prediction_
+fn_ = fn_.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+fn_rate_ = fn_ / positives_
+
+#false-positive
+negatives_ = (~truth_).astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+fp_ = ~truth_ & prediction_
+fp_ = fp_.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+fp_rate_ = fp_ / negatives_
+del positives_, negatives_
