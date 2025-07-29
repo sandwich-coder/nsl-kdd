@@ -267,6 +267,7 @@ del batchloss, fig, ax, plot
 loss_fn = LossFn(reduction = 'none')
 normal_data = ae.process(X, train = False)
 
+## Try averaging or medianing the losses for multiple perturbations.
 #perturbation
 noise = torch.normal(
     mean = torch.median(normal_data),
