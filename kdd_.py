@@ -24,9 +24,9 @@ mpl.rcParams['legend.fontsize'] = 'x-small'
 mpl.rcParams['lines.markersize'] = 1
 mpl.rcParams['lines.linewidth'] = 0.5
 from rich.console import Console
-from rich.logging import RichHandler
 
 from scipy import stats
+from rich.logging import RichHandler
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import precision_score, recall_score, f1_score
@@ -261,9 +261,10 @@ ax.legend()
 descent = fig
 del batchloss, fig, ax, plot
 
+
 #threshold
 loss_fn = LossFn(reduction = 'none')
-normal_data = ae.process(X, train = False)
+normal_data = ae.process(X, train = False)    ## Consider perturbing the normal data to take advantage of the "unstability" of adversarial behaviors.
 normal_loss = loss_fn(ae(normal_data).detach(), normal_data)    ###
 _ = normal_loss.numpy()
 normal_loss = _.astype('float64')
