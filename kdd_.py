@@ -26,6 +26,7 @@ mpl.rcParams['lines.linewidth'] = 0.5
 from rich.console import Console
 from rich.logging import RichHandler
 
+from scipy import stats
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import precision_score, recall_score, f1_score
@@ -296,21 +297,25 @@ _ = anomalous_loss.numpy()
 anomalous_loss = _.astype('float64')
 anomalous_loss = anomalous_loss.mean(axis = 1, dtype = 'float64')
 
-result.loc[normal_index, 'prediction'] = normal_loss >= threshold
-result.loc[anomalous_index, 'prediction'] = anomalous_loss >= threshold
+result.loc[normal_index, 'detection'] = normal_loss >= threshold
+result.loc[anomalous_index, 'detection'] = anomalous_loss >= threshold
 del normal_index, normal_data, normal_loss, anomalous_index, anomalous_data, anomalous_loss
 
 fig = pp.figure(layout = 'constrained')
 ax = fig.add_subplot()
 ax.set_box_aspect(0.7)
-ax.set_title('Detection')
-pp.setp(ax.get_xticklabels(), rotation = 60, ha = 'right', va = 'top')
+ax.set_title('Detection (train)')
+ax.set_ylabel('proportion (%)')
+pp.setp(ax.get_xticklabels(), rotation = 60, ha = 'right')
 
 sb.histplot(
     data = result, x = 'attack',
-    hue = 'prediction',
-    multiple = 'dodge',
+    hue = 'detection',
+    stat = 'percent',
+    common_norm = True, multiple = 'dodge',
     shrink = 0.8,
+    palette = {True:'tab:red', False:'tab:blue'},
+    hue_order = [True, False],
     ax = ax,
     )
 del fig, ax
@@ -341,21 +346,24 @@ _ = anomalous_loss_.numpy()
 anomalous_loss_ = _.astype('float64')
 anomalous_loss_ = anomalous_loss_.mean(axis = 1, dtype = 'float64')
 
-result_.loc[normal_index_, 'prediction'] = normal_loss_ >= threshold
-result_.loc[anomalous_index_, 'prediction'] = anomalous_loss_ >= threshold
+result_.loc[normal_index_, 'detection'] = normal_loss_ >= threshold
+result_.loc[anomalous_index_, 'detection'] = anomalous_loss_ >= threshold
 del normal_index_, normal_data_, normal_loss_, anomalous_index_, anomalous_data_, anomalous_loss_
 
 fig = pp.figure(layout = 'constrained')
 ax = fig.add_subplot()
 ax.set_box_aspect(0.7)
-ax.set_title('Detection')
-pp.setp(ax.get_xticklabels(), rotation = 60, ha = 'right', va = 'top')
+ax.set_title('Detection (test)')
+ax.set_ylabel('proportion (%)')
+pp.setp(ax.get_xticklabels(), rotation = 60, ha = 'right')
 
 sb.histplot(
     data = result_, x = 'attack',
-    hue = 'prediction',
-    multiple = 'dodge',
+    hue = 'detection',
+    stat = 'percent',
+    common_norm = True, multiple = 'dodge',
     shrink = 0.8,
+    palette = {True:'tab:red', False:'tab:blue'}, hue_order = [True, False],
     ax = ax,
     )
 del fig, ax
