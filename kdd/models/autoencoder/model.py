@@ -181,18 +181,18 @@ class Autoencoder(nn.Module):
         loss = loss.mean(axis = 1, dtype = 'float64')
 
         #predicted
-        prediction = loss >= self._threshold
-        returns.append(prediction)
+        detection = loss >= self._threshold
+        returns.append(detection)
 
         #false-negative rate
         positives = truth.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-        fn = truth & ~prediction
+        fn = truth & ~detection
         fn = fn.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
         fn_rate = fn / positives
 
         #false-positive rate
         negatives = (~truth).astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-        fp = ~truth & prediction
+        fp = ~truth & detection
         fp = fp.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
         fp_rate = fp / negatives
 
@@ -267,13 +267,13 @@ class Autoencoder(nn.Module):
                 rate = round(fn_rate * 100, ndigits = 1),
                 ))
             print('     Precision: {precision}'.format(
-                precision = round(precision_score(truth, prediction), ndigits = 3),
+                precision = round(precision_score(truth, detection), ndigits = 3),
                 ))
             print('        Recall: {recall}'.format(
-                recall = round(recall_score(truth, prediction), ndigits = 3),
+                recall = round(recall_score(truth, detection), ndigits = 3),
                 ))
             print('            F1: {f1}'.format(
-                f1 = round(f1_score(truth, prediction), ndigits = 3),
+                f1 = round(f1_score(truth, detection), ndigits = 3),
                 ))
 
         if len(returns) > 1:

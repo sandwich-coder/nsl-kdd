@@ -30,6 +30,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import precision_score, recall_score, f1_score
 from torch.utils.data import DataLoader
+import seaborn as sb
 from tqdm import tqdm
 
 
@@ -72,11 +73,15 @@ df_anomalous_ = df_hot_[df_hot_['attack'] != 'normal'].copy()
 df_anomalous_.drop(columns = ['attack'], inplace = True)
 del df_hot, df_hot_, categorical
 
+
+# - prepared -
+
 #to arrays
 normal = df_normal.to_numpy(dtype = 'float64', copy = True)
 normal_ = df_normal_.to_numpy(dtype = 'float64', copy = True)
 anomalous = df_anomalous.to_numpy(dtype = 'float64', copy = True)
 anomalous_ = df_anomalous_.to_numpy(dtype = 'float64', copy = True)
+del df_normal, df_normal_, df_anomalous, df_anomalous_
 
 #training set
 X = normal.copy()
@@ -255,7 +260,7 @@ ax.legend()
 descent = fig
 del batchloss, fig, ax, plot
 
-#threshold set
+#threshold
 loss_fn = LossFn(reduction = 'none')
 normal_data = ae.process(X, train = False)
 normal_loss = loss_fn(ae(normal_data).detach(), normal_data)    ###
@@ -268,33 +273,89 @@ del normal_data, normal_loss
 
 # - anomaly detection (train) -
 
+result = df.copy()
+result = result.astype({'attack':'category'}, copy = True)
+
+normal_index = df[df['attack'] == 'normal']
+normal_index = normal_index.index
+normal_index = normal_index.to_numpy(dtype = 'int64', copy = False)
+
+normal_data = ae.process(normal, train = False)
+normal_loss = loss_fn(ae(normal_data).detach(), normal_data)    ###
+_ = normal_loss.numpy()
+normal_loss = _.astype('float64')
+normal_loss = normal_loss.mean(axis = 1, dtype = 'float64')
+
+anomalous_index = df[df['attack'] != 'normal']
+anomalous_index = anomalous_index.index
+anomalous_index = anomalous_index.to_numpy(dtype = 'int64', copy = False)
+
 anomalous_data = ae.process(anomalous, train = False)
-loss = loss_fn(ae(anomalous_data).detach(), anomalous_data)    ###
-_ = loss.numpy()
-loss = _.astype('float64')
-loss = loss.mean(axis = 1, dtype = 'float64')
+anomalous_loss = loss_fn(ae(anomalous_data).detach(), anomalous_data)    ###
+_ = anomalous_loss.numpy()
+anomalous_loss = _.astype('float64')
+anomalous_loss = anomalous_loss.mean(axis = 1, dtype = 'float64')
 
-fn_index = np.arange(len(anomalous))
-fn_index = fn_index[loss < threshold]
-fn_index = df_anomalous.index.to_numpy(dtype = 'int64', copy = False)[fn_index]
-del anomalous_data, loss
+result.loc[normal_index, 'prediction'] = normal_loss >= threshold
+result.loc[anomalous_index, 'prediction'] = anomalous_loss >= threshold
+del normal_index, normal_data, normal_loss, anomalous_index, anomalous_data, anomalous_loss
 
-fn_counts = df.loc[fn_index, 'attack']
-fn_counts = fn_counts.value_counts()
+fig = pp.figure(layout = 'constrained')
+ax = fig.add_subplot()
+ax.set_box_aspect(0.7)
+ax.set_title('Detection')
+pp.setp(ax.get_xticklabels(), rotation = 60, ha = 'right', va = 'top')
+
+sb.histplot(
+    data = result, x = 'attack',
+    hue = 'prediction',
+    multiple = 'dodge',
+    shrink = 0.8,
+    ax = ax,
+    )
+del fig, ax
 
 
 # - anomaly detection (test) -
 
+result_ = df_.copy()
+result_ = result_.astype({'attack':'category'}, copy = True)
+
+normal_index_ = df_[df_['attack'] == 'normal']
+normal_index_ = normal_index_.index
+normal_index_ = normal_index_.to_numpy(dtype = 'int64', copy = False)
+
+normal_data_ = ae.process(normal_, train = False)
+normal_loss_ = loss_fn(ae(normal_data_).detach(), normal_data_)    ###
+_ = normal_loss_.numpy()
+normal_loss_ = _.astype('float64')
+normal_loss_ = normal_loss_.mean(axis = 1, dtype = 'float64')
+
+anomalous_index_ = df_[df_['attack'] != 'normal']
+anomalous_index_ = anomalous_index_.index
+anomalous_index_ = anomalous_index_.to_numpy(dtype = 'int64', copy = False)
+
 anomalous_data_ = ae.process(anomalous_, train = False)
-loss_ = loss_fn(ae(anomalous_data_).detach(), anomalous_data_)    ###
-_ = loss_.numpy()
-loss_ = _.astype('float64')
-loss_ = loss_.mean(axis = 1, dtype = 'float64')
+anomalous_loss_ = loss_fn(ae(anomalous_data_).detach(), anomalous_data_)    ###
+_ = anomalous_loss_.numpy()
+anomalous_loss_ = _.astype('float64')
+anomalous_loss_ = anomalous_loss_.mean(axis = 1, dtype = 'float64')
 
-fn_index_ = np.arange(len(anomalous_))
-fn_index_ = fn_index_[loss_ < threshold]
-fn_index_ = df_anomalous_.index.to_numpy(dtype = 'int64', copy = False)[fn_index_]
-del anomalous_data_, loss_
+result_.loc[normal_index_, 'prediction'] = normal_loss_ >= threshold
+result_.loc[anomalous_index_, 'prediction'] = anomalous_loss_ >= threshold
+del normal_index_, normal_data_, normal_loss_, anomalous_index_, anomalous_data_, anomalous_loss_
 
-fn_counts_ = df_.loc[fn_index_, 'attack']
-fn_counts_ = fn_counts_.value_counts()
+fig = pp.figure(layout = 'constrained')
+ax = fig.add_subplot()
+ax.set_box_aspect(0.7)
+ax.set_title('Detection')
+pp.setp(ax.get_xticklabels(), rotation = 60, ha = 'right', va = 'top')
+
+sb.histplot(
+    data = result_, x = 'attack',
+    hue = 'prediction',
+    multiple = 'dodge',
+    shrink = 0.8,
+    ax = ax,
+    )
+del fig, ax
