@@ -97,10 +97,10 @@ class Autoencoder(nn.Module):
 
         self._encoder = nn.Sequential(
             nn.Sequential(nn.Linear(122, 40), nn.GELU()),
-            nn.Sequential(nn.Linear(40, 5), nn.Sigmoid()),
+            nn.Sequential(nn.Linear(40, 10), nn.Sigmoid()),
             )
         self._decoder = nn.Sequential(
-            nn.Sequential(nn.Linear(5, 40), nn.GELU()),
+            nn.Sequential(nn.Linear(10, 40), nn.GELU()),
             nn.Sequential(nn.Linear(40, 122), nn.Sigmoid()),
             )
 
@@ -262,9 +262,19 @@ descent = fig
 del batchloss, fig, ax, plot
 
 
-#threshold
+# - threshold -
+
 loss_fn = LossFn(reduction = 'none')
-normal_data = ae.process(X, train = False)    ## Consider perturbing the normal data to take advantage of the "unstability" of adversarial behaviors.
+normal_data = ae.process(X, train = False)
+
+#perturbation
+noise = torch.normal(
+    mean = torch.median(normal_data),
+    std = (torch.quantile(normal_data, 0.75, dim = 0) - torch.quantile(normal_data, 0.25, dim = 0)) / 5,
+    )
+noise = torch.reshape(noise, [1, noise.size(dim = 0)])
+normal_data = normal_data + noise
+
 normal_loss = loss_fn(ae(normal_data).detach(), normal_data)    ###
 _ = normal_loss.numpy()
 normal_loss = _.astype('float64')
@@ -283,6 +293,7 @@ normal_index = normal_index.index
 normal_index = normal_index.to_numpy(dtype = 'int64', copy = False)
 
 normal_data = ae.process(normal, train = False)
+normal_data = normal_data + noise    #perturbation
 normal_loss = loss_fn(ae(normal_data).detach(), normal_data)    ###
 _ = normal_loss.numpy()
 normal_loss = _.astype('float64')
@@ -293,6 +304,7 @@ anomalous_index = anomalous_index.index
 anomalous_index = anomalous_index.to_numpy(dtype = 'int64', copy = False)
 
 anomalous_data = ae.process(anomalous, train = False)
+anomalous_data = anomalous_data + noise    #perturbation
 anomalous_loss = loss_fn(ae(anomalous_data).detach(), anomalous_data)    ###
 _ = anomalous_loss.numpy()
 anomalous_loss = _.astype('float64')
@@ -332,6 +344,7 @@ normal_index_ = normal_index_.index
 normal_index_ = normal_index_.to_numpy(dtype = 'int64', copy = False)
 
 normal_data_ = ae.process(normal_, train = False)
+normal_data_ = normal_data_ + noise    #perturbation
 normal_loss_ = loss_fn(ae(normal_data_).detach(), normal_data_)    ###
 _ = normal_loss_.numpy()
 normal_loss_ = _.astype('float64')
@@ -342,6 +355,7 @@ anomalous_index_ = anomalous_index_.index
 anomalous_index_ = anomalous_index_.to_numpy(dtype = 'int64', copy = False)
 
 anomalous_data_ = ae.process(anomalous_, train = False)
+anomalous_data_ = anomalous_data_ + noise    #perturbation
 anomalous_loss_ = loss_fn(ae(anomalous_data_).detach(), anomalous_data_)    ###
 _ = anomalous_loss_.numpy()
 anomalous_loss_ = _.astype('float64')
