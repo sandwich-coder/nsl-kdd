@@ -36,6 +36,8 @@ class Autoencoder(nn.Module):
     def forward(self, data):
         if data.size(dim = 1) != self._in_features:
             raise ValueError('The number of features must match the input layer.')
+        assert hasattr(self, '_encoder'), 'no encoder'
+        assert hasattr(self, '_decoder'), 'no decoder'
 
         output = self._encoder(data)
         output = self._decoder(output)
@@ -52,7 +54,7 @@ class Autoencoder(nn.Module):
             raise ValueError('The input must be of \'numpy.float64\'.')
 
         if not train:
-            pass
+            assert hasattr(self, '_scaler'), 'no scaler'
         else:
             self._scaler = MinMaxScaler(feature_range = (0, 1), copy = True)
             self._scaler.fit(X)
@@ -71,6 +73,7 @@ class Autoencoder(nn.Module):
             raise ValueError('The input must be tabular.')
         if processed.dtype != torch.float32:
             raise ValueError('The input must be of \'torch.float32\'.')
+        assert hasattr(self, '_scaler'), 'no scaler'
 
         _ = processed.numpy()
         unprocessed = _.astype('float64')
@@ -96,11 +99,18 @@ class Autoencoder(nn.Module):
         return Y
 
 
-    def compile(self, LossFn = nn.MSELoss):
+    def compile(self, LossFn = nn.MSELoss, LossAD = None):
         if not issubclass(LossFn, nn.Module):
             raise TypeError('The loss function should be a subclass of \'torch.nn.Module\'.')
+        if LossAD is not None:
+            if not issubclass(LossAD, nn.Module):
+                raise TypeError('The loss function for detection should be a subclass of \'torch.nn.Module\'.')
 
         self._trainer = Trainer(LossFn)
+        if LossAD is not None:
+            self._LossAD = LossAD
+        else:
+            self._LossAD = LossFn
 
 
     def fit(self, X, return_descentplot = False, auto_latent = False, q_threshold = 0.99):
@@ -118,6 +128,9 @@ class Autoencoder(nn.Module):
             raise ValueError('The input must be of \'numpy.float64\'.')
         if not 0 < q_threshold < 1:
             raise ValueError('The detection threshold must be between 0 and 1.')
+        assert hasattr(self, '_trainer'), 'no trainer'
+        assert hasattr(self, '_latent'), 'no latent'
+        assert hasattr(self, '_LossAD'), 'no detection loss'
 
         if auto_latent:
             estimator = DimensionEstimator()
@@ -129,7 +142,7 @@ class Autoencoder(nn.Module):
         self._trainer.train(X, self)
 
         #threshold set
-        loss_fn = self._trainer.LossFn(reduction = 'none')
+        loss_fn = self._LossAD(reduction = 'none')    #the loss function for detection
         normal_data = self.process(X, train = False)
         normal_loss = loss_fn(self(normal_data).detach(), normal_data)    ###
         _ = normal_loss.numpy()
@@ -141,16 +154,13 @@ class Autoencoder(nn.Module):
             return self._trainer.plot_descent()
 
 
-    def detect(self, mix, truth = None, return_histplot = False, LossFn = None):
+    def detect(self, mix, truth = None, return_histplot = False):
         if not isinstance(mix, np.ndarray):
             raise TypeError('The dataset should be a \'numpy.ndarray\'.')
         if not isinstance(truth, np.ndarray) and truth is not None:
             raise TypeError('\'truth\' should be a \'numpy.ndarray\'.')
         if not isinstance(return_histplot, bool):
             raise TypeError('\'return_histplot\' should be boolean.')
-        if LossFn is not None:
-            if not issubclass(LossFn, nn.Module):
-                raise TypeError('The loss function should be a subclass of \'torch.nn.Module\'.')
         if mix.ndim != 2:
             raise ValueError('The dataset must be tabular.')
         if mix.shape[1] != self._in_features:
@@ -165,13 +175,11 @@ class Autoencoder(nn.Module):
             raise ValueError('\'truth\' must have the same length as the dataset.')
         if truth is None and return_histplot:
             raise ValueError('\'return_histplot\' is valid only when the truth is given.')
+        assert hasattr(self, '_threshold'), 'no threshold'
         returns = []
 
         #prepared
-        if LossFn is not None:
-            loss_fn = LossFn(reduction = 'none')
-        else:
-            loss_fn = self._trainer.LossFn(reduction = 'none')
+        loss_fn = self._LossAD(reduction = 'none')    #the loss function for detection
         data = self.process(mix, train = False)
 
         #loss measured
@@ -204,7 +212,7 @@ class Autoencoder(nn.Module):
                 ax.set_box_aspect(0.6)
                 ax.set_title('Reconstruction Losses')
                 ax.set_xlabel('loss')
-                ax.set_ylabel('Proportion (%)')
+                ax.set_ylabel('proportion (%)')
                 pp.setp(ax.get_yticklabels(), rotation = 90, va = 'center')
 
                 bincount = 500

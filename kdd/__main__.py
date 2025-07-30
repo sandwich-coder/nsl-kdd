@@ -69,7 +69,6 @@ truth_ = np.ones(mixed_.shape[0], dtype = 'int64')
 truth_[:len(normal_)] = 0
 truth_ = truth_.astype('bool')
 
-
 #training set
 X = normal.copy()
 X_ = normal_.copy()
@@ -77,15 +76,18 @@ X_ = normal_.copy()
 #model
 ae = Autoencoder()
 
+
+# - training -
+
 #trained
-ae.compile()
+ae.compile(LossAD = nn.L1Loss)
 descent = ae.fit(X, return_descentplot = True, q_threshold = q_threshold)
 
 #detection
 print('\n\n --- Train ---\n')
-prediction, reconstructions = ae.detect(mixed, truth, return_histplot = True, LossFn = nn.L1Loss)
+prediction, reconstructions = ae.detect(mixed, truth, return_histplot = True)
 print('\n\n --- Test ---\n')
-prediction_, reconstructions_ = ae.detect(mixed_, truth_, return_histplot = True, LossFn = nn.L1Loss)
+prediction_, reconstructions_ = ae.detect(mixed_, truth_, return_histplot = True)
 
 #saved
 os.makedirs('figures', exist_ok = True)
