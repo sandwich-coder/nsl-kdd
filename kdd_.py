@@ -264,7 +264,7 @@ del batchloss, fig, ax, plot
 
 # - threshold -
 
-loss_fn = LossFn(reduction = 'none')
+loss_fn = nn.L1Loss(reduction = 'none')    #different from that for training
 normal_data = ae.process(X, train = False)
 
 ## Try averaging or medianing the losses for multiple perturbations.
