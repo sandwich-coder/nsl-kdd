@@ -1,5 +1,6 @@
 #experiment
 
+import inspect, code
 from copy import deepcopy as copy
 import types
 import time

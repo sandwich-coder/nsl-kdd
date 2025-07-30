@@ -14,16 +14,14 @@ class Autoencoder(nn.Module):
         self._in_features = 122
         self._latent = 10
         self._encoder = nn.Sequential(
-            nn.Sequential(nn.Linear(self._in_features, 1000), nn.GELU()),
-            nn.Sequential(nn.Linear(1000, 250), nn.GELU()),
-            nn.Sequential(nn.Linear(250, 62), nn.GELU()),
-            nn.Sequential(nn.Linear(62, self._latent), nn.Sigmoid()),
+            nn.Sequential(nn.Linear(self._in_features, 128), nn.GELU()),
+            nn.Sequential(nn.Linear(128, 64), nn.GELU()),
+            nn.Sequential(nn.Linear(64, self._latent), nn.Sigmoid()),
             )
         self._decoder = nn.Sequential(
-            nn.Sequential(nn.Linear(self._latent, 62), nn.GELU()),
-            nn.Sequential(nn.Linear(62, 250), nn.GELU()),
-            nn.Sequential(nn.Linear(250, 1000), nn.GELU()),
-            nn.Sequential(nn.Linear(1000, self._in_features), nn.Sigmoid()),
+            nn.Sequential(nn.Linear(self._latent, 64), nn.GELU()),
+            nn.Sequential(nn.Linear(64, 128), nn.GELU()),
+            nn.Sequential(nn.Linear(128, self._in_features), nn.Sigmoid()),
             )
 
         with torch.no_grad():
@@ -188,21 +186,9 @@ class Autoencoder(nn.Module):
         loss = _.astype('float64')
         loss = loss.mean(axis = 1, dtype = 'float64')
 
-        #predicted
+        #detection
         detection = loss >= self._threshold
         returns.append(detection)
-
-        #false-negative rate
-        positives = truth.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-        fn = truth & ~detection
-        fn = fn.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-        fn_rate = fn / positives
-
-        #false-positive rate
-        negatives = (~truth).astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-        fp = ~truth & detection
-        fp = fp.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-        fp_rate = fp / negatives
 
         if truth is not None:
 
@@ -268,11 +254,23 @@ class Autoencoder(nn.Module):
                 returns.append(fig)
 
 
-            print('false positive: {rate:>4}%'.format(
-                rate = round(fp_rate * 100, ndigits = 1),
-                ))
+            #false-negative rate
+            positives = truth.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+            fn = truth & ~detection
+            fn = fn.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+            fn_rate = fn / positives
+
+            #false-positive rate
+            negatives = (~truth).astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+            fp = ~truth & detection
+            fp = fp.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+            fp_rate = fp / negatives
+
             print('false negative: {rate:>4}%'.format(
                 rate = round(fn_rate * 100, ndigits = 1),
+                ))
+            print('false positive: {rate:>4}%'.format(
+                rate = round(fp_rate * 100, ndigits = 1),
                 ))
             print('     Precision: {precision}'.format(
                 precision = round(precision_score(truth, detection), ndigits = 3),
