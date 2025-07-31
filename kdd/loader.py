@@ -27,16 +27,10 @@ def _make_nsl_kdd(attack, resplit, raw):
     if raw:
 
         normal = df[df['attack'] == 'normal'].copy()
-        normal.drop(columns = ['attack'], inplace = True)
-
         normal_ = df_[df_['attack'] == 'normal'].copy()
-        normal_.drop(columns = ['attack'], inplace = True)
 
         anomalous = df[df['attack'] != 'normal'].copy()
-        anomalous.drop(columns = ['attack'], inplace = True)
-
         anomalous_ = df_[df_['attack'] != 'normal'].copy()
-        anomalous_.drop(columns = ['attack'], inplace = True)
 
         if attack:
             return anomalous, anomalous_

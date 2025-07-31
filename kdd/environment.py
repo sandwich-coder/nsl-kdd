@@ -1,5 +1,5 @@
-import inspect, code
 from copy import deepcopy as copy
+import inspect, code
 import types
 import time
 import logging
