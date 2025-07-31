@@ -2,38 +2,48 @@ import inspect
 
 
 def foo():
+    a = 0
     local_names = locals()
+
+    print(local_names['a'])
+
+    #read
+    a = 1
+    print(local_names['a'])
+    a = 0
+
+    #write
+    local_names['a'] = 1
+    print(a)
+    local_names['a'] = 0
+
+
+def bar():
+    a = 0
     frame = inspect.currentframe()
 
-    print('--- Before ---')
-    print('local_names.get(\'a\'): {}'.format(local_names.get('a')))
-    print('locals().get(\'a\'): {}'.format(locals().get('a')))
-    print('frame.f_locals.get(\'a\'): {}'.format(frame.f_locals.get('a')))
-    print('')
+    print(frame.f_locals['a'])
 
+    #read
     a = 1
-    print('--- Modified Outside < a = 1 > ---')
-    print('local_names.get(\'a\'): {}'.format(local_names.get('a')))
-    print('locals().get(\'a\'): {}'.format(locals().get('a')))
-    print('frame.f_locals.get(\'a\'): {}'.format(frame.f_locals.get('a')))
-    print('')
+    print(frame.f_locals['a'])
+    a = 0
 
-    local_names['a'] = 2
-    print('--- Locals Modified < a = 2 > ---')
-    print('a:', a)
-    print('a:', a)
-    print('')
-
-    frame.f_locals['a'] = 3
-    print('--- Frame Modified < a = 3 > ---')
-    print('a:', a)
-    print('a:', a)
+    #write
+    frame.f_locals['a'] = 1
+    print(a)
+    frame.f_locals['a'] = 0
 
 
+print('\n')
 foo()
+print('\n')
+bar()
+print('\n')
 
 
 """
-The above mismatching behavior of the 'frame.f_locals'
-between read and write is fixed in Python3.13.
+'inspect.currentframe' returns a live frame like 'globals', as opposed to 'locals' which returns a snapshot of the moment.
+However, only the 'f_locals' property returns a copy of the dictionary that is updated on read but not write-through,
+inconsistent with being a live object. This is fixed in Python3.13, 'inspect.currentframe' becoming fully live.
 """
