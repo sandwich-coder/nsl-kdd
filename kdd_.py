@@ -1,7 +1,7 @@
 #experiment
 
-import inspect, code
 from copy import deepcopy as copy
+import inspect, code
 import types
 import time
 import logging
@@ -73,6 +73,7 @@ df_anomalous.drop(columns = ['attack'], inplace = True)
 #anomalous-test
 df_anomalous_ = df_hot_[df_hot_['attack'] != 'normal'].copy()
 df_anomalous_.drop(columns = ['attack'], inplace = True)
+
 del df_hot, df_hot_, categorical
 
 
@@ -83,11 +84,12 @@ normal = df_normal.to_numpy(dtype = 'float64', copy = True)
 normal_ = df_normal_.to_numpy(dtype = 'float64', copy = True)
 anomalous = df_anomalous.to_numpy(dtype = 'float64', copy = True)
 anomalous_ = df_anomalous_.to_numpy(dtype = 'float64', copy = True)
-del df_normal, df_normal_, df_anomalous, df_anomalous_
 
 #training set
 X = normal.copy()
 X_ = normal_.copy()
+
+del df_normal, df_normal_, df_anomalous, df_anomalous_
 
 
 # - model -
@@ -239,7 +241,6 @@ logger.info(' - Training finished - ')
 
 #bach to cpu
 ae.cpu()
-del data, optimizer, loss_fn, loader, last_epoch, iteration, out, loss
 
 #descent plot
 fig = pp.figure(layout = 'constrained', figsize = (10, 7.3))
@@ -260,7 +261,8 @@ plot = ax.plot(
     )
 ax.legend()
 descent = fig
-del batchloss, fig, ax, plot
+
+del data, optimizer, loss_fn, loader, last_epoch, iteration, out, loss, batchloss, fig, ax, plot
 
 
 # - threshold -
@@ -268,61 +270,80 @@ del batchloss, fig, ax, plot
 loss_fn = nn.L1Loss(reduction = 'none')    #different from that for training
 normal_data = ae.process(X, train = False)
 
-## Try averaging or medianing the losses for multiple perturbations.
+## This perturbation idea seems a failure.
 #perturbation
-noise = torch.normal(
-    mean = torch.median(normal_data),
-    std = (torch.quantile(normal_data, 0.75, dim = 0) - torch.quantile(normal_data, 0.25, dim = 0)) / 5,
-    )
-noise = torch.reshape(noise, [1, noise.size(dim = 0)])
-normal_data = normal_data + noise
+noises = []
+for l in range(10):
+    temp = torch.normal(
+        torch.quantile(normal_data, 0.5, dim = 0),
+        (torch.quantile(normal_data, 0.75, dim = 0) - torch.quantile(normal_data, 0.25, dim = 0)) / 5,
+        )
+    temp = torch.unsqueeze(temp, 0)
+    noises.append(temp)
 
-normal_loss = loss_fn(ae(normal_data).detach(), normal_data)    ###
-_ = normal_loss.numpy()
-normal_loss = _.astype('float64')
-normal_loss = normal_loss.mean(axis = 1, dtype = 'float64')
+normal_loss = []
+for l in noises:
+    temp = loss_fn(ae(normal_data + l).detach(), normal_data + l)    ###
+    _ = temp.numpy()
+    temp = _.astype('float64')
+    temp = temp.mean(axis = 1, dtype = 'float64')
+    normal_loss.append(temp)
+normal_loss = np.stack(normal_loss, axis = 0)
+normal_loss = normal_loss.mean(axis = 0, dtype = 'float64')
+
 threshold = np.quantile(normal_loss, 0.99, axis = 0).tolist()
+
 del normal_data, normal_loss
 
 
 # - anomaly detection (train) -
 
+normal_data = ae.process(normal, train = False)
+
+#perturbed
+normal_loss = []
+for l in noises:
+    temp = loss_fn(ae(normal_data + l).detach(), normal_data + l)    ###
+    _ = temp.numpy()
+    temp = _.astype('float64')
+    temp = temp.mean(axis = 1, dtype = 'float64')
+    normal_loss.append(temp)
+normal_loss = np.stack(normal_loss, axis = 0)
+normal_loss = normal_loss.mean(axis = 0, dtype = 'float64')
+
+anomalous_data = ae.process(anomalous, train = False)
+
+#perturbed
+anomalous_loss = []
+for l in noises:
+    temp = loss_fn(ae(anomalous_data + l).detach(), anomalous_data + l)    ###
+    _ = temp.numpy()
+    temp = _.astype('float64')
+    temp = temp.mean(axis = 1, dtype = 'float64')
+    anomalous_loss.append(temp)
+anomalous_loss = np.stack(anomalous_loss, axis = 0)
+anomalous_loss = anomalous_loss.mean(axis = 0, dtype = 'float64')
+
+#prepared
 result = df.copy()
 result = result.astype({'attack':'category'}, copy = True)
-
 normal_index = df[df['attack'] == 'normal']
 normal_index = normal_index.index
 normal_index = normal_index.to_numpy(dtype = 'int64', copy = False)
-
-normal_data = ae.process(normal, train = False)
-normal_data = normal_data + noise    #perturbation
-normal_loss = loss_fn(ae(normal_data).detach(), normal_data)    ###
-_ = normal_loss.numpy()
-normal_loss = _.astype('float64')
-normal_loss = normal_loss.mean(axis = 1, dtype = 'float64')
-
 anomalous_index = df[df['attack'] != 'normal']
 anomalous_index = anomalous_index.index
 anomalous_index = anomalous_index.to_numpy(dtype = 'int64', copy = False)
 
-anomalous_data = ae.process(anomalous, train = False)
-anomalous_data = anomalous_data + noise    #perturbation
-anomalous_loss = loss_fn(ae(anomalous_data).detach(), anomalous_data)    ###
-_ = anomalous_loss.numpy()
-anomalous_loss = _.astype('float64')
-anomalous_loss = anomalous_loss.mean(axis = 1, dtype = 'float64')
-
 result.loc[normal_index, 'detection'] = normal_loss >= threshold
 result.loc[anomalous_index, 'detection'] = anomalous_loss >= threshold
-del normal_index, normal_data, normal_loss, anomalous_index, anomalous_data, anomalous_loss
 
+#plot
 fig = pp.figure(layout = 'constrained')
 ax = fig.add_subplot()
 ax.set_box_aspect(0.7)
 ax.set_title('Detection (train)')
 ax.set_ylabel('proportion (%)')
 pp.setp(ax.get_xticklabels(), rotation = 60, ha = 'right')
-
 sb.histplot(
     data = result, x = 'attack',
     hue = 'detection',
@@ -333,7 +354,10 @@ sb.histplot(
     hue_order = [True, False],
     ax = ax,
     )
-del fig, ax
+detections_train = fig
+breakpoint()
+
+del normal_data, normal_loss, anomalous_data, anomalous_loss, normal_index, anomalous_index, fig, ax
 
 
 # - anomaly detection (test) -
