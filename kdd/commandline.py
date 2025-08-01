@@ -11,15 +11,12 @@ args = parser.parse_args()
 
 
 #resplit
-if args.resplit == 'True':
-    resplit = True
-elif args.resplit == 'False':
-    resplit = False
-else:
-    raise ValueError('Only \'True\' and \'False\' are available for the \'--resplit\'.')
+if not args.resplit in ['True', 'False']:
+    raise ValueError('\'resplit\' must be \'True\' or \'False\'.')
+exec('resplit = {}'.format(args.resplit))    # The 'exec' works properly only in the global scope.
 
 #q_threshold
-q_threshold = float(args.qthreshold)
+exec('q_threshold = {}'.format(args.qthreshold))
 
 #logging_level
 logging_level = args.log

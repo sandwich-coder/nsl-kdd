@@ -389,7 +389,6 @@ anomalous_loss_ = anomalous_loss_.mean(axis = 1, dtype = 'float64')
 
 result_.loc[normal_index_, 'detection'] = normal_loss_ >= threshold
 result_.loc[anomalous_index_, 'detection'] = anomalous_loss_ >= threshold
-del normal_index_, normal_data_, normal_loss_, anomalous_index_, anomalous_data_, anomalous_loss_
 
 fig = pp.figure(layout = 'constrained')
 ax = fig.add_subplot()
@@ -407,4 +406,5 @@ sb.histplot(
     palette = {True:'tab:red', False:'tab:blue'}, hue_order = [True, False],
     ax = ax,
     )
-del fig, ax
+
+del normal_index_, normal_data_, normal_loss_, anomalous_index_, anomalous_data_, anomalous_loss_, fig, ax

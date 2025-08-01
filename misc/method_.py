@@ -27,7 +27,7 @@ foo_bar2 = foo.bar
 print('\n')
 print(foo_bar1 is foo_bar2)    # The differing of addresses seems to come from the instance generation of MethodType.
 print(type(foo.bar))
-print(type(Foo.bar))
+print(type(Foo.bar))    # 'Foo.bar' is not some "fallback option" of 'foo.bar'. Rather, python automatically GENERATES new methods based on the predefined functions of that class. 'foo.bar' is thus an instance attribute, which originated from class attribute 'Foo.bar'.
 
 print('\n')
 
