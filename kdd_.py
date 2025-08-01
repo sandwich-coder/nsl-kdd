@@ -355,56 +355,69 @@ sb.histplot(
     ax = ax,
     )
 detections_train = fig
-breakpoint()
 
 del normal_data, normal_loss, anomalous_data, anomalous_loss, normal_index, anomalous_index, fig, ax
 
 
 # - anomaly detection (test) -
 
+normal_data_ = ae.process(normal_, train = False)
+
+#perturbed
+normal_loss_ = []
+for l in noises:
+    temp = loss_fn(ae(normal_data_ + l).detach(), normal_data_ + l)    ###
+    _ = temp.numpy()
+    temp = _.astype('float64')
+    temp = temp.mean(axis = 1, dtype = 'float64')
+    normal_loss_.append(temp)
+normal_loss_ = np.stack(normal_loss_, axis = 0)
+normal_loss_ = normal_loss_.mean(axis = 0, dtype = 'float64')
+
+anomalous_data_ = ae.process(anomalous_, train = False)
+
+#perturbed
+anomalous_loss_ = []
+for l in noises:
+    temp = loss_fn(ae(anomalous_data_ + l).detach(), anomalous_data_ + l)    ###
+    _ = temp.numpy()
+    temp = _.astype('float64')
+    temp = temp.mean(axis = 1, dtype = 'float64')
+    anomalous_loss_.append(temp)
+anomalous_loss_ = np.stack(anomalous_loss_, axis = 0)
+anomalous_loss_ = anomalous_loss_.mean(axis = 0, dtype = 'float64')
+
+#prepared
 result_ = df_.copy()
 result_ = result_.astype({'attack':'category'}, copy = True)
-
 normal_index_ = df_[df_['attack'] == 'normal']
 normal_index_ = normal_index_.index
 normal_index_ = normal_index_.to_numpy(dtype = 'int64', copy = False)
-
-normal_data_ = ae.process(normal_, train = False)
-normal_data_ = normal_data_ + noise    #perturbation
-normal_loss_ = loss_fn(ae(normal_data_).detach(), normal_data_)    ###
-_ = normal_loss_.numpy()
-normal_loss_ = _.astype('float64')
-normal_loss_ = normal_loss_.mean(axis = 1, dtype = 'float64')
-
 anomalous_index_ = df_[df_['attack'] != 'normal']
 anomalous_index_ = anomalous_index_.index
 anomalous_index_ = anomalous_index_.to_numpy(dtype = 'int64', copy = False)
 
-anomalous_data_ = ae.process(anomalous_, train = False)
-anomalous_data_ = anomalous_data_ + noise    #perturbation
-anomalous_loss_ = loss_fn(ae(anomalous_data_).detach(), anomalous_data_)    ###
-_ = anomalous_loss_.numpy()
-anomalous_loss_ = _.astype('float64')
-anomalous_loss_ = anomalous_loss_.mean(axis = 1, dtype = 'float64')
-
 result_.loc[normal_index_, 'detection'] = normal_loss_ >= threshold
 result_.loc[anomalous_index_, 'detection'] = anomalous_loss_ >= threshold
 
+#plot
 fig = pp.figure(layout = 'constrained')
 ax = fig.add_subplot()
 ax.set_box_aspect(0.7)
 ax.set_title('Detection (test)')
 ax.set_ylabel('proportion (%)')
 pp.setp(ax.get_xticklabels(), rotation = 60, ha = 'right')
-
 sb.histplot(
     data = result_, x = 'attack',
     hue = 'detection',
     stat = 'percent',
     common_norm = True, multiple = 'dodge',
     shrink = 0.8,
-    palette = {True:'tab:red', False:'tab:blue'}, hue_order = [True, False],
+    palette = {True:'tab:red', False:'tab:blue'},
+    hue_order = [True, False],
     ax = ax,
     )
+detections_test = fig
+breakpoint()
 
-del normal_index_, normal_data_, normal_loss_, anomalous_index_, anomalous_data_, anomalous_loss_, fig, ax
+del normal_data_, normal_loss_, anomalous_data_, anomalous_loss_, normal_index_, anomalous_index_, fig, ax
