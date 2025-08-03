@@ -273,7 +273,7 @@ normal_data = ae.process(X, train = False)
 ## This perturbation idea seems a failure.
 #perturbation
 noises = []
-for l in range(10):
+for l in range(100):
     temp = torch.normal(
         torch.quantile(normal_data, 0.5, dim = 0),
         (torch.quantile(normal_data, 0.75, dim = 0) - torch.quantile(normal_data, 0.25, dim = 0)) / 5,

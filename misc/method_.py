@@ -33,7 +33,7 @@ print('\n')
 
 
 """
-An input of a function can be "pushed inside" to become a parameter defining it.
+The first input of a function can be "pushed inside" to be included in the definition.
 Such "reduced" function is called a 'method' of the original. In fact,
 Python offers tools to make methods manually.
 """

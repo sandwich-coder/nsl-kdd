@@ -7,6 +7,6 @@ def foo():
 
     #local scope
     exec('b = 1')
-    print(locals().get('a'))
+    print(locals().get('b'))
 
 foo()
