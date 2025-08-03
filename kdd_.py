@@ -267,19 +267,24 @@ del data, optimizer, loss_fn, loader, last_epoch, iteration, out, loss, batchlos
 
 # - threshold -
 
+add_noise = False
+
 loss_fn = nn.L1Loss(reduction = 'none')    #different from that for training
 normal_data = ae.process(X, train = False)
 
 ## This perturbation idea seems a failure.
 #perturbation
-noises = []
-for l in range(100):
-    temp = torch.normal(
-        torch.quantile(normal_data, 0.5, dim = 0),
-        (torch.quantile(normal_data, 0.75, dim = 0) - torch.quantile(normal_data, 0.25, dim = 0)) / 5,
-        )
-    temp = torch.unsqueeze(temp, 0)
-    noises.append(temp)
+if add_noise:
+    noises = []
+    for l in range(100):
+        temp = torch.normal(
+            torch.quantile(normal_data, 0.5, dim = 0),
+            (torch.quantile(normal_data, 0.75, dim = 0) - torch.quantile(normal_data, 0.25, dim = 0)) / 50,
+            )
+        temp = torch.unsqueeze(temp, 0)
+        noises.append(temp)
+else:
+    noises = [0]
 
 normal_loss = []
 for l in noises:
