@@ -1,12 +1,51 @@
+# - global scope -
 
-#global scope
 exec('a = 1')
-print(locals().get('a'))    # The 'locals' returns the snapshot, EXCEPT in the global scope.
+
+#natural
+try:
+    print(a)
+except NameError:
+    print('It is not visible.')
+except:
+    print('errors ignored')
+
+#from dictionary
+try:
+    print(locals()['a'])
+except KeyError:
+    print('It is not in the dictionary.')
+except:
+    print('errors ignored')
+
+
+# - local scope -
 
 def foo():
-
-    #local scope
     exec('b = 1')
-    print(locals().get('b'))
+
+    #natural
+    try:
+        print(b)
+    except NameError:
+        print('It is not visible.')
+    except:
+        print('errors ignored')
+
+    #from dictionary
+    try:
+        print(locals()['b'])
+    except KeyError:
+        print('It is not in the dictionary.')
+    except:
+        print('errors ignored')
 
 foo()
+
+
+
+"""
+Function 'exec' doesn't behave as expected in the local scope.
+The reason is not in some peculiarity of the function per se,
+but in the peculiar mechanism of how local names are stored.
+"""
