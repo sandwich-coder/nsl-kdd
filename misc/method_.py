@@ -1,6 +1,8 @@
 from types import MethodType
 
 
+# - function -
+
 class Foo:
     def __init__(self):
         def func():
@@ -10,10 +12,13 @@ class Foo:
 foo = Foo()
 foo_bar1 = foo.bar
 foo_bar2 = foo.bar
-print('\n')
 print(foo_bar1 is foo_bar2)
 print(type(foo.bar))
 
+
+print('')
+
+# - method -
 
 class Foo:
     def __init__(self):
@@ -24,12 +29,9 @@ class Foo:
 foo = Foo()
 foo_bar1 = foo.bar
 foo_bar2 = foo.bar
-print('\n')
 print(foo_bar1 is foo_bar2)    # The differing of addresses seems to come from the instance generation of MethodType.
 print(type(foo.bar))
 print(type(Foo.bar))    # 'Foo.bar' is not some "fallback option" of 'foo.bar'. Rather, python automatically GENERATES new methods based on the predefined functions of that class. 'foo.bar' is thus an instance attribute, which originated from class attribute 'Foo.bar'.
-
-print('\n')
 
 
 """
@@ -41,5 +43,5 @@ Python offers tools to make methods manually.
 def add(a, b):
     return a + b
 
-a = 1
-exec("add_to_{} = MethodType(add, a)".format(a))
+temp = 1
+exec("add_to_{} = MethodType(add, temp)".format(temp))

@@ -19,6 +19,8 @@ except:
     print('errors ignored')
 
 
+print('')
+
 # - local scope -
 
 def foo():

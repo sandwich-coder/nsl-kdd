@@ -37,7 +37,7 @@ def bar():
 
 print('\n')
 foo()
-print('\n')
+print('')
 bar()
 print('\n')
 
