@@ -1,5 +1,7 @@
 #experiment
 
+import sys, os, subprocess
+
 from copy import deepcopy as copy
 import inspect, code
 import types
@@ -40,8 +42,8 @@ from tqdm import tqdm
 
 dataset = 'nsl-kdd'
 
-df = pd.read_csv('datasets/nsl-kdd/train.csv', header = 0, index_col = None)
-df_ = pd.read_csv('datasets/nsl-kdd/test.csv', header = 0, index_col = None)
+df = pd.read_csv('../datasets/nsl-kdd/train.csv', header = 0, index_col = None)
+df_ = pd.read_csv('../datasets/nsl-kdd/test.csv', header = 0, index_col = None)
 categorical = [
     'protocol_type',
     'service',
@@ -99,12 +101,16 @@ class Autoencoder(nn.Module):
         super().__init__()
 
         self._encoder = nn.Sequential(
-            nn.Sequential(nn.Linear(122, 40), nn.GELU()),
-            nn.Sequential(nn.Linear(40, 10), nn.Sigmoid()),
+            nn.Sequential(nn.Linear(122, 128), nn.GELU()),
+            nn.Sequential(nn.Linear(128, 64), nn.GELU()),
+            nn.Sequential(nn.Linear(64, 32), nn.GELU()),
+            nn.Sequential(nn.Linear(32, 10), nn.Sigmoid()),
             )
         self._decoder = nn.Sequential(
-            nn.Sequential(nn.Linear(10, 40), nn.GELU()),
-            nn.Sequential(nn.Linear(40, 122), nn.Sigmoid()),
+            nn.Sequential(nn.Linear(10, 32), nn.GELU()),
+            nn.Sequential(nn.Linear(32, 64), nn.GELU()),
+            nn.Sequential(nn.Linear(64, 128), nn.GELU()),
+            nn.Sequential(nn.Linear(128, 122), nn.Sigmoid()),
             )
 
         with torch.no_grad():
@@ -279,7 +285,7 @@ if add_noise:
     for l in range(100):
         temp = torch.normal(
             torch.quantile(normal_data, 0.5, dim = 0),
-            (torch.quantile(normal_data, 0.75, dim = 0) - torch.quantile(normal_data, 0.25, dim = 0)) / 5,
+            (torch.quantile(normal_data, 0.75, dim = 0) - torch.quantile(normal_data, 0.25, dim = 0)) / 50,
             )
         temp = torch.unsqueeze(temp, 0)
         noises.append(temp)
@@ -359,7 +365,7 @@ sb.histplot(
     hue_order = [True, False],
     ax = ax,
     )
-detections_train = fig
+detections = fig
 
 del normal_data, normal_loss, anomalous_data, anomalous_loss, normal_index, anomalous_index, fig, ax
 
@@ -422,7 +428,16 @@ sb.histplot(
     hue_order = [True, False],
     ax = ax,
     )
-detections_test = fig
-breakpoint()
+detections_ = fig
 
 del normal_data_, normal_loss_, anomalous_data_, anomalous_loss_, normal_index_, anomalous_index_, fig, ax
+
+
+#saved
+os.makedirs('figures', exist_ok = True)
+if add_noise:
+    detections.savefig('figures/detection_with_noise-train', dpi = 300)
+    detections_.savefig('figures/detection_with_noise-test', dpi = 300)
+else:
+    detections.savefig('figures/detection-train', dpi = 300)
+    detections_.savefig('figures/detection-test', dpi = 300)

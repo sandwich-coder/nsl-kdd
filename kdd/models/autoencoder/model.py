@@ -198,7 +198,7 @@ class Autoencoder(nn.Module):
                 fig = pp.figure(layout = 'constrained')
                 ax = fig.add_subplot()
                 ax.set_box_aspect(0.6)
-                ax.set_title('Reconstruction Losses')
+                ax.set_title('Reconstruction Loss')
                 ax.set_xlabel('loss')
                 ax.set_ylabel('proportion (%)')
                 pp.setp(ax.get_yticklabels(), rotation = 90, va = 'center')

@@ -92,5 +92,5 @@ prediction_, reconstructions_ = ae.detect(mixed_, truth_, return_histplot = True
 #saved
 os.makedirs('figures', exist_ok = True)
 descent.savefig('figures/descent.png', dpi = 300)
-reconstructions.savefig('figures/reconstructions-train.png', dpi = 600)
-reconstructions_.savefig('figures/reconstructions-test.png', dpi = 600)
+reconstructions.savefig('figures/reconstruction-train.png', dpi = 600)
+reconstructions_.savefig('figures/reconstruction-test.png', dpi = 600)
