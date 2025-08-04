@@ -267,7 +267,7 @@ del data, optimizer, loss_fn, loader, last_epoch, iteration, out, loss, batchlos
 
 # - threshold -
 
-add_noise = False
+add_noise = True
 
 loss_fn = nn.L1Loss(reduction = 'none')    #different from that for training
 normal_data = ae.process(X, train = False)
@@ -279,7 +279,7 @@ if add_noise:
     for l in range(100):
         temp = torch.normal(
             torch.quantile(normal_data, 0.5, dim = 0),
-            (torch.quantile(normal_data, 0.75, dim = 0) - torch.quantile(normal_data, 0.25, dim = 0)) / 50,
+            (torch.quantile(normal_data, 0.75, dim = 0) - torch.quantile(normal_data, 0.25, dim = 0)) / 5,
             )
         temp = torch.unsqueeze(temp, 0)
         noises.append(temp)
