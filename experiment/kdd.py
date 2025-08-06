@@ -273,7 +273,7 @@ del data, optimizer, loss_fn, loader, last_epoch, iteration, out, loss, batchlos
 
 # - threshold -
 
-add_noise = True
+add_noise = False
 
 loss_fn = nn.L1Loss(reduction = 'none')    #different from that for training
 normal_data = ae.process(X, train = False)
@@ -290,7 +290,7 @@ if add_noise:
         temp = torch.unsqueeze(temp, 0)
         noises.append(temp)
 else:
-    noises = [0]
+    noises = [torch.tensor(0, dtype = torch.float32)]
 
 normal_loss = []
 for l in noises:

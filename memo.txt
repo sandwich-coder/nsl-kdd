@@ -5,4 +5,4 @@ The following are personal convention for consistency and maintenance.
 3.1  The preparation for training goes as follows: Tensor -> gpu -> graph
 3.2  The preparation for evaluation goes as follows: detach -> cpu -> array
 4.1  A shallow copy is always named '_'.
-4.2  Comment "###" is added wherever a detaching operation is, in that it is a bit more complicated than mere shallow copy.
+4.2  Comment "###" is added wherever a detaching operation is.
