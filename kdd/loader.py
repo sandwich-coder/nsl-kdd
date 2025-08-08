@@ -11,8 +11,14 @@ def _make_nsl_kdd(attack, resplit, raw):
         'flag',
         ]
 
+    # The below code doesn't work. There seems some property issue.
+    # df.loc[:, categorical] = df.loc[:, categorical].astype('category', copy = False)
+    # The 'loc' property should be used with care for assignment operations.
+
+    #type conversion
     for ll in categorical:
-        df[ll] = df[ll].astype('category')
+        df[ll] = df[ll].astype('category', copy = False)    # The 'copy=False' is not "always view" but "view if possible".
+        df_[ll] = df_[ll].astype('category', copy = False)
 
     if resplit:
         temp = pd.concat([df, df_], axis = 'index')
@@ -25,6 +31,8 @@ def _make_nsl_kdd(attack, resplit, raw):
 
 
     if raw:
+        df = df.astype({'attack':'category'}, copy = False)
+        df_ = df_.astype({'attack':'category'}, copy = False)
 
         normal = df[df['attack'] == 'normal'].copy()
         normal_ = df_[df_['attack'] == 'normal'].copy()
@@ -71,6 +79,11 @@ def _make_nsl_kdd(attack, resplit, raw):
 
 
 class Loader:
+    """
+    reference = [
+        '_make_nsl_kdd',
+        ]
+    """
     def __init__(self):
         pass
     def __repr__(self):

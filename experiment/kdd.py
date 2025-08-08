@@ -51,7 +51,7 @@ categorical = [
     ]
 
 for l in categorical:
-    df[l] = df[l].astype('category')
+    df[l] = df[l].astype('category', copy = False)
 
 #one-hot
 merged = pd.concat([df, df_], axis = 'index')
