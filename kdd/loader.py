@@ -16,8 +16,10 @@ def _make_nsl_kdd(attack, resplit, raw):
     # The 'loc' property should be used with care for assignment operations.
 
     #type conversion
+    # The 'copy=False' option is virtually meaningless, since copy is required except very special cases.
+    # The real intent of the option is to avoid copy when the input dtype and the target dtype are the same.
     for ll in categorical:
-        df[ll] = df[ll].astype('category', copy = False)    # The 'copy=False' is not "always view" but "view if possible".
+        df[ll] = df[ll].astype('category', copy = False)
         df_[ll] = df_[ll].astype('category', copy = False)
 
     if resplit:
