@@ -10,26 +10,6 @@ from .dimension_estimator import DimensionEstimator
 class Autoencoder(nn.Module):
     def __init__(self):
         super().__init__()
-
-        self._in_features = 122
-        self._latent = 10
-        self._encoder = nn.Sequential(
-            nn.Sequential(nn.Linear(self._in_features, 128), nn.GELU()),
-            nn.Sequential(nn.Linear(128, 64), nn.GELU()),
-            nn.Sequential(nn.Linear(64, 32), nn.GELU()),
-            nn.Sequential(nn.Linear(32, self._latent), nn.Sigmoid()),
-            )
-        self._decoder = nn.Sequential(
-            nn.Sequential(nn.Linear(self._latent, 32), nn.GELU()),
-            nn.Sequential(nn.Linear(32, 64), nn.GELU()),
-            nn.Sequential(nn.Linear(64, 128), nn.GELU()),
-            nn.Sequential(nn.Linear(128, self._in_features), nn.Sigmoid()),
-            )
-
-        with torch.no_grad():
-            nn.init.xavier_uniform_(self._encoder[-1][0].weight)
-            nn.init.xavier_uniform_(self._decoder[-1][0].weight)
-
     def __repr__(self):
         return 'autoencoder'
 
@@ -129,7 +109,6 @@ class Autoencoder(nn.Module):
         if not 0 < q_threshold < 1:
             raise ValueError('The detection threshold must be between 0 and 1.')
         assert hasattr(self, '_trainer'), 'no trainer'
-        assert hasattr(self, '_latent'), 'no latent'
         assert hasattr(self, '_LossAD'), 'no detection loss'
 
         if auto_latent:
@@ -137,7 +116,27 @@ class Autoencoder(nn.Module):
             dimension = estimator(X, exact = True, trim = True)
             logger.info('intrinsic dimension: {}'.format(round(dimension, ndigits = 2)))
             self._latent = round(dimension)
-        logger.info('The latent dimension is set to {}.'.format(self._latent))
+            logger.info('The latent dimension is set to {}'.format(self._latent))
+        else:
+            self._latent = 10
+
+        self._in_features = 122
+        self._encoder = nn.Sequential(
+            nn.Sequential(nn.Linear(self._in_features, 128), nn.GELU()),
+            nn.Sequential(nn.Linear(128, 64), nn.GELU()),
+            nn.Sequential(nn.Linear(64, 32), nn.GELU()),
+            nn.Sequential(nn.Linear(32, self._latent), nn.Sigmoid()),
+            )
+        self._decoder = nn.Sequential(
+            nn.Sequential(nn.Linear(self._latent, 32), nn.GELU()),
+            nn.Sequential(nn.Linear(32, 64), nn.GELU()),
+            nn.Sequential(nn.Linear(64, 128), nn.GELU()),
+            nn.Sequential(nn.Linear(128, self._in_features), nn.Sigmoid()),
+            )
+
+        with torch.no_grad():
+            nn.init.xavier_uniform_(self._encoder[-1][0].weight)
+            nn.init.xavier_uniform_(self._decoder[-1][0].weight)
 
         self._trainer.train(X, self)
 
