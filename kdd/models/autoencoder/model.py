@@ -203,7 +203,10 @@ class Autoencoder(nn.Module):
                 pp.setp(ax.get_yticklabels(), rotation = 90, va = 'center')
 
                 bincount = 500
-                binrange = [0, 0.2]
+                binrange = [
+                    np.quantile(loss, 0, axis = 0),
+                    np.quantile(loss, 0.99, axis = 0),
+                    ]
 
                 #normal pmf
                 normal_loss = loss[~truth]    # Simple indexing, which includes slicing, returns a view, or a shallow copy in other words. However, "fancy indexing" returns a copy instead of a view, differing from the numpy's usual indexing behavior one would expect. Therefore the names are separated without copying.

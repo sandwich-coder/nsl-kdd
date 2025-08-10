@@ -69,8 +69,8 @@ class Trainer:
         if logger.getEffectiveLevel() > 20:
             pass
         else:
-            print('Epoch |   Loss')
-            print('===== | ======')
+            print('Epoch |   Loss    ')
+            print('===== | ==========')
         for lll in range(epochs):
             self._ae.train()
             last_epoch = []
