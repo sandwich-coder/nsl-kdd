@@ -69,8 +69,8 @@ class Trainer:
         if logger.getEffectiveLevel() > 20:
             pass
         else:
-            print('Epoch |     Loss')
-            print('===== | ========')
+            print('Epoch |   Loss')
+            print('===== | ======')
         for lll in range(epochs):
             self._ae.train()
             last_epoch = []
@@ -98,9 +98,9 @@ class Trainer:
             if logger.getEffectiveLevel() > 20:
                 pass
             else:
-                print(' {epoch:>4} | {epochloss:<8}'.format(
+                print('{epoch:>5} | {epochloss:.4E}'.format(
                     epoch = lll + 1,
-                    epochloss = last_epoch.mean(axis = 0, dtype = 'float64').round(decimals = 6),
+                    epochloss = last_epoch.mean(axis = 0, dtype = 'float64').tolist(),
                     ))
 
             self._batchloss.append(last_epoch)
