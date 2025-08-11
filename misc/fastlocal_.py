@@ -1,22 +1,22 @@
 def foo():
-    exec('a = 1')
-    print(a)
+    exec('a = 1')    #update 'locals'
+    print(a)    #seems to load from the fast storage
 
 def bar():
     exec('a = 1')
-    exec('print(a)')
+    exec('print(a)')    #seems to load from 'locals()'
 
 
 try:
     foo()
 except NameError:
-    print('name not recognized')
+    print('names not recognized')
 except:
-    print('error ignored')
+    print('errors ignored')
 
 try:
     bar()
 except NameError:
-    print('name not recognized')
+    print('names not recognized')
 except:
-    print('error ignored')
+    print('errors ignored')
