@@ -12,6 +12,8 @@ result['long1'] = {}
 result['long2'] = {}
 
 
+# - situation -
+
 #check in 9 days first and extend on success
 result['short']['success'] = - 6 * 9 - 70 * 4
 result['short']['fail'] = - 6 * 9    #out in 9 days
@@ -36,26 +38,30 @@ print('long2: {}'.format(result['long2']))
 print('\n')
 
 
+# - expected flow -
+
 expected = {}
 
 print('                Expected Cash Flow')
 print('          ------------------------')
 print('Chance ||  short |  long1 |  long2')
 print('------ || ------ | ------ | ------')
-chance = np.linspace(np.float64(0), np.float64(1), num = 1000, endpoint = False)
+chance = np.linspace(np.float64(0), np.float64(1), num = 100, endpoint = False)
 chance = chance.tolist()
 for l in chance:
+
+    #expected values
     expected['short'] = round(result['short']['success'] * l + result['short']['fail'] * (1 - l), ndigits = 1)
     expected['long1'] = round(result['long1']['success'] * l + result['long1']['fail'] * (1 - l), ndigits = 1)
     expected['long2'] = round(result['long2']['success'] * l + result['long2']['fail'] * (1 - l), ndigits = 1)
 
+    #most efficient option
     most_saving = max(*expected.values())
     efficient = list(expected.values()).index(most_saving)
     efficient = list(expected.keys())[efficient]
+
     print('{:>5}% || {:>6} | {:>6} | {:>6}   -> efficient choice :  {}'.format(
         round(l * 100, ndigits = 1),
-        expected['short'],
-        expected['long1'],
-        expected['long2'],
+        expected['short'], expected['long1'], expected['long2'],
         efficient,
         ))
