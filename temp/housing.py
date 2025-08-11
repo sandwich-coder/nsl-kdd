@@ -14,21 +14,21 @@ result['long2'] = {}
 
 # - situation -
 
-#check in 9 days first and extend on success
-result['short']['success'] = - 6 * 9 - 70 * 4
-result['short']['fail'] = - 6 * 9    #out in 9 days
+#check in 10 days first and extend on success
+result['short']['success'] = - 6 * 10 - 70 * 4
+result['short']['fail'] = - 6 * 10    #out two days after the announcement
 
 #check in 1 month first and extend on success
 result['long1']['success'] = - 90 * 1 - 75 * 3
 result['long1']['fail'] = - 90 * 1    #out in a month
-temp = - 7 * 9 - 30    #out in 9 days
+temp = - 7 * 10 - 30    #out two days after the announcement
 if result['long1']['fail'] < temp:
     result['long1']['fail'] = temp
 
 #check in 4 months and remain on success
 result['long2']['success'] = - 70 * 4
 result['long2']['fail'] = - 90 * 1 - 30    #out in a month
-temp = - 7 * 9 - 30    #out in 9 days
+temp = - 7 * 10 - 30    #out two days after the announcement
 if result['long2']['fail'] < temp:
     result['long2']['fail'] = temp
 
@@ -42,10 +42,12 @@ print('\n')
 
 expected = {}
 
-print('                Expected Cash Flow')
-print('          ------------------------')
-print('Chance ||  short |  long1 |  long2')
-print('------ || ------ | ------ | ------')
+print('''\
+                Expected Cash Flow
+          ------------------------
+Chance ||  short |  long1 |  long2
+------ || ------ | ------ | ------\
+    ''')
 chance = np.linspace(np.float64(0), np.float64(1), num = 100, endpoint = False)
 chance = chance.tolist()
 for l in chance:
