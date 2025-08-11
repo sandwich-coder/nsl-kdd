@@ -52,7 +52,7 @@ for l in chance:
     most_saving = max(*expected.values())
     efficient = list(expected.values()).index(most_saving)
     efficient = list(expected.keys())[efficient]
-    print('{:>5}% || {:>6} | {:>6} | {:>6}   -> best choice :  {}'.format(
+    print('{:>5}% || {:>6} | {:>6} | {:>6}   -> efficient choice :  {}'.format(
         round(l * 100, ndigits = 1),
         expected['short'],
         expected['long1'],
