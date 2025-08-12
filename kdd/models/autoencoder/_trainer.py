@@ -13,9 +13,9 @@ else:
 
 Optimizer = optim.AdamW
 learning_rate = 0.0001
-epsilon = 1e-7
+epsilon = 1e-6
 
-batch_size = 32
+batch_size = 16
 epochs = 30
 
 

@@ -91,9 +91,9 @@ class DimensionEstimator:
             batch = batch[:len(tile)]
 
         adjacency = []
-        for lll in tqdm(batch, ncols = 70):
+        for l in tqdm(batch, ncols = 70):
 
-            distance = cdist(lll, tile, metric = 'chebyshev')
+            distance = cdist(l, tile, metric = 'chebyshev')
             is_adjacent = np.isclose(distance, 1, atol = 0)
 
             adjacency_batch = is_adjacent.astype('int64')

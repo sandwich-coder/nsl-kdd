@@ -41,7 +41,6 @@ class Autoencoder(nn.Module):
 
         processed = self._scaler.transform(X)
         processed = torch.tensor(processed, dtype = torch.float32)
-
         return processed
 
     def unprocess(self, processed):
@@ -118,7 +117,7 @@ class Autoencoder(nn.Module):
             self._latent = round(dimension)
             logger.info('The latent dimension is set to {}'.format(self._latent))
         else:
-            self._latent = 10
+            self._latent = 9
 
         self._in_features = 122
         self._encoder = nn.Sequential(
