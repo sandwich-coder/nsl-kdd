@@ -1,8 +1,14 @@
 The following are personal convention for consistency and maintenance.
 
+
 1.   An instance attribute that is not a method of its class function always starts with an underbar. It is referenced, assigned, and removed only in functions defined in its class, viewed as a small namespace in which objects are internally shared.
+
 2.   'if' statements follow the "false-first".
+
 3.1  The preparation for training goes as follows: Tensor -> gpu -> graph
 3.2  The preparation for evaluation goes as follows: detach -> cpu -> array
+
 4.1  A shallow copy is always named '_'.
 4.2  Comment "###" is added wherever a detaching operation is.
+
+5.   The object iteratively assigned in a for-loop is always named 'lll...' where the number of 'l's is the depth of the loop, to avoid such situation where a loop intercept a name that is being used in another loop.

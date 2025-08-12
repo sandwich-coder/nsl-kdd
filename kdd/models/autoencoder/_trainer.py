@@ -71,17 +71,17 @@ class Trainer:
         else:
             print('Epoch |   Loss    ')
             print('===== | ==========')
-        for lll in range(epochs):
+        for l in range(epochs):
             self._ae.train()
             last_epoch = []
             if logger.getEffectiveLevel() > 20:
                 iteration = loader
             else:
                 iteration = tqdm(loader, leave = False, ncols = 70)
-            for llll in iteration:
+            for ll in iteration:
 
-                out = self._ae(llll)
-                loss = loss_fn(out, llll)
+                out = self._ae(ll)
+                loss = loss_fn(out, ll)
 
                 loss.backward()
                 optimizer.step()
@@ -99,7 +99,7 @@ class Trainer:
                 pass
             else:
                 print('{epoch:>5} | {epochloss:.4E}'.format(
-                    epoch = lll + 1,
+                    epoch = l + 1,
                     epochloss = last_epoch.mean(axis = 0, dtype = 'float64').tolist(),
                     ))
 

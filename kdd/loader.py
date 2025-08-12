@@ -18,9 +18,9 @@ def _make_nsl_kdd(attack, resplit, raw):
     #type conversion
     # The 'copy=False' option is virtually meaningless, since copy is required except very special cases.
     # The real intent of the option is to avoid copy when the input dtype and the target dtype are the same.
-    for ll in categorical:
-        df[ll] = df[ll].astype('category', copy = False)
-        df_[ll] = df_[ll].astype('category', copy = False)
+    for l in categorical:
+        df[l] = df[l].astype('category', copy = False)
+        df_[l] = df_[l].astype('category', copy = False)
 
     if resplit:
         temp = pd.concat([df, df_], axis = 'index')
