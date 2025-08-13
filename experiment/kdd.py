@@ -27,6 +27,8 @@ mpl.rcParams['legend.fontsize'] = 'x-small'
 mpl.rcParams['lines.markersize'] = 1
 mpl.rcParams['lines.linewidth'] = 0.5
 from rich.console import Console
+from rich.text import Text
+from rich.table import Table
 
 from scipy import stats
 from rich.logging import RichHandler
