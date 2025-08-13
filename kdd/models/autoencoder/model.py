@@ -199,7 +199,7 @@ class Autoencoder(nn.Module):
                 ax.set_title('Reconstruction Loss')
                 ax.set_xlabel('loss')
                 ax.set_ylabel('proportion (%)')
-                pp.setp(ax.get_yticklabels(), rotation = 90, va = 'center')
+                pp.setp(ax.get_yticklabels(), rotation = 90, va = 'center')    # The 'ha' and 'va' options specify the realignment. If "rotation_mode='anchor'" it realigns before the rotation, otherwise after the rotation.
 
                 bincount = 500
                 binrange = [
