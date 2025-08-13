@@ -269,21 +269,23 @@ class Autoencoder(nn.Module):
             fp = fp.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
             fp_rate = fp / negatives
 
-            print('false negative: {rate:>4}%'.format(
-                rate = round(fn_rate * 100, ndigits = 1),
-                ))
-            print('false positive: {rate:>4}%'.format(
-                rate = round(fp_rate * 100, ndigits = 1),
-                ))
-            print('     Precision: {precision}'.format(
-                precision = round(precision_score(truth, detection), ndigits = 3),
-                ))
-            print('        Recall: {recall}'.format(
-                recall = round(recall_score(truth, detection), ndigits = 3),
-                ))
-            print('            F1: {f1}'.format(
-                f1 = round(f1_score(truth, detection), ndigits = 3),
-                ))
+
+            # - table -
+
+            console = Console()
+
+            table = Table()
+            table.add_column('Metric', justify = 'center')
+            table.add_column('Score', justify = 'right')
+
+            table.add_row('false negative', format(fn_rate, '.1%'))
+            table.add_row('false positive', format(fp_rate, '.1%'))
+            table.add_row('Precision', format(precision_score(truth, detection), '.3f'))
+            table.add_row('Recall', format(recall_score(truth, detection), '.3f'))
+            table.add_row('F1', format(f1_score(truth, detection), '.3f'))
+
+            console.print(table)
+
 
         if len(returns) > 1:
             return returns
