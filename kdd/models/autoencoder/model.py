@@ -113,24 +113,22 @@ class Autoencoder(nn.Module):
         if auto_latent:
             estimator = DimensionEstimator()
             dimension = estimator(X, exact = True, trim = True)
-            logger.info('intrinsic dimension: {}'.format(round(dimension, ndigits = 2)))
-            self._latent = round(dimension)
-            logger.info('The latent dimension is set to {}'.format(self._latent))
+            logger.info('intrinsic dimension: {:.2f}'.format(dimension))
+            latent = round(dimension)
+            logger.info('The latent dimension is set to {}'.format(latent))
         else:
-            self._latent = 9
+            latent = 9
 
         self._in_features = 122
         self._encoder = nn.Sequential(
-            nn.Sequential(nn.Linear(self._in_features, 128), nn.GELU()),
-            nn.Sequential(nn.Linear(128, 64), nn.GELU()),
-            nn.Sequential(nn.Linear(64, 32), nn.GELU()),
-            nn.Sequential(nn.Linear(32, self._latent), nn.Sigmoid()),
+            nn.Sequential(nn.Linear(self._in_features, 61), nn.GELU()),
+            nn.Sequential(nn.Linear(61, 30), nn.GELU()),
+            nn.Sequential(nn.Linear(30, latent), nn.Sigmoid()),
             )
         self._decoder = nn.Sequential(
-            nn.Sequential(nn.Linear(self._latent, 32), nn.GELU()),
-            nn.Sequential(nn.Linear(32, 64), nn.GELU()),
-            nn.Sequential(nn.Linear(64, 128), nn.GELU()),
-            nn.Sequential(nn.Linear(128, self._in_features), nn.Sigmoid()),
+            nn.Sequential(nn.Linear(latent, 30), nn.GELU()),
+            nn.Sequential(nn.Linear(30, 61), nn.GELU()),
+            nn.Sequential(nn.Linear(61, self._in_features), nn.Sigmoid()),
             )
 
         with torch.no_grad():

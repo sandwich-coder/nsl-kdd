@@ -81,7 +81,7 @@ ae = Autoencoder()
 
 #trained
 ae.compile(LossAD = nn.L1Loss)
-descent = ae.fit(X, return_descentplot = True, q_threshold = q_threshold)
+descent = ae.fit(X, return_descentplot = True, q_threshold = q_threshold, auto_latent = True)
 
 #detection
 print('\n\n --- Train ---\n')
