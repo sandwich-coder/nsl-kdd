@@ -278,7 +278,10 @@ class Autoencoder(nn.Module):
             table.add_column('Metric', justify = 'center')
             table.add_column('Score', justify = 'right')
 
-            table.add_row('false negative', format(fn_rate, '.1%'))
+            table.add_row(
+                Text('false negative', style = 'red'),
+                Text(format(fn_rate, '.1%'), style = 'bold red'),
+                )
             table.add_row('false positive', format(fp_rate, '.1%'))
             table.add_row('Precision', format(precision_score(truth, detection), '.3f'))
             table.add_row('Recall', format(recall_score(truth, detection), '.3f'))
