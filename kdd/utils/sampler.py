@@ -2,6 +2,7 @@ from environment import *
 logger = logging.getLogger(name = __name__)
 
 
+# Shuffle need be added.
 class Sampler:
     def __init__(self):
         pass
