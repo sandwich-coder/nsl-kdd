@@ -120,15 +120,28 @@ class Autoencoder(nn.Module):
             latent = 9
 
         self._in_features = 122
-        self._encoder = nn.Sequential(
-            nn.Sequential(nn.Linear(self._in_features, 61), nn.GELU()),
-            nn.Sequential(nn.Linear(61, 30), nn.GELU()),
-            nn.Sequential(nn.Linear(30, latent), nn.Sigmoid()),
+        self._encoder = nn.Sequential()
+        fan_in = self._in_features
+        while fan_in / 4 >= latent:
+            fan_out = fan_in // 2
+            self._encoder.append(
+                nn.Sequential(nn.Linear(fan_in, fan_out), nn.GELU()),
+                ),
+            fan_in = fan_out
+        self._encoder.append(
+            nn.Sequential(nn.Linear(fan_in, latent), nn.Sigmoid()),
             )
-        self._decoder = nn.Sequential(
-            nn.Sequential(nn.Linear(latent, 30), nn.GELU()),
-            nn.Sequential(nn.Linear(30, 61), nn.GELU()),
-            nn.Sequential(nn.Linear(61, self._in_features), nn.Sigmoid()),
+
+        self._decoder = nn.Sequential()
+        fan_in = latent
+        while fan_in * 4 <= self._in_features:
+            fan_out = fan_in * 2
+            self._decoder.append(
+                nn.Sequential(nn.Linear(fan_in, fan_out), nn.GELU()),
+                )
+            fan_in = fan_out
+        self._decoder.append(
+            nn.Sequential(nn.Linear(fan_in, self._in_features), nn.Sigmoid()),
             )
 
         with torch.no_grad():
