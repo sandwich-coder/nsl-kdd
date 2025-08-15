@@ -12,14 +12,16 @@ from torch import optim, nn
 import xgboost as xgb
 import matplotlib as mpl
 from matplotlib import pyplot as pp
-mpl.rcParams['figure.figsize'] = (10, 10)
-mpl.rcParams['axes.titlesize'] = 'medium'
-mpl.rcParams['axes.labelsize'] = 'x-small'
-mpl.rcParams['xtick.labelsize'] = 'xx-small'
-mpl.rcParams['ytick.labelsize'] = 'xx-small'
-mpl.rcParams['legend.fontsize'] = 'x-small'
-mpl.rcParams['lines.markersize'] = 1
-mpl.rcParams['lines.linewidth'] = 0.5
+mpl.rcParams.update({
+    'figure.figsize':(10, 10),
+    'axes.titlesize':'medium',
+    'axes.labelsize':'x-small',
+    'xtick.labelsize':'xx-small',
+    'ytick.labelsize':'xx-small',
+    'legend.fontsize':'x-small',
+    'lines.markersize':1,
+    'lines.linewidth':0.5,
+    })
 from rich.console import Console
 from rich.text import Text
 from rich.table import Table
