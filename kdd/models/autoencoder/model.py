@@ -118,12 +118,13 @@ class Autoencoder(nn.Module):
             logger.info('The latent dimension is set to {}'.format(latent))
         else:
             latent = 9
+        fold = 2
 
         self._in_features = 122
         self._encoder = nn.Sequential()
         fan_in = self._in_features
-        while fan_in / 4 >= latent:
-            fan_out = fan_in // 2
+        while fan_in / fold ** 2 >= latent:
+            fan_out = fan_in // fold
             self._encoder.append(
                 nn.Sequential(nn.Linear(fan_in, fan_out), nn.GELU()),
                 ),
@@ -134,8 +135,8 @@ class Autoencoder(nn.Module):
 
         self._decoder = nn.Sequential()
         fan_in = latent
-        while fan_in * 4 <= self._in_features:
-            fan_out = fan_in * 2
+        while fan_in * fold ** 2 <= self._in_features:
+            fan_out = fan_in * fold
             self._decoder.append(
                 nn.Sequential(nn.Linear(fan_in, fan_out), nn.GELU()),
                 )
