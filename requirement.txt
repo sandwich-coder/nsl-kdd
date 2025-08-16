@@ -1,7 +1,5 @@
 #python3.12
 
-#cuda 12.8
---extra-index-url https://download.pytorch.org/whl/cu128
 
 #necessary
 numpy
@@ -9,7 +7,7 @@ scipy
 
 #default
 pandas
-torch
+https://download.pytorch.org/whl/cu128/torch-2.8.0%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl
 xgboost
 matplotlib
 rich
