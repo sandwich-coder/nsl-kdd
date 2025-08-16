@@ -1,3 +1,4 @@
+#Ubuntu24.04
 #python3.12
 
 
