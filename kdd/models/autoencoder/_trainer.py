@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 if not torch.cuda.is_available():
     device = torch.device('cpu')
-    logger.info('CPU is assigned to \'device\' as fallback.')
+    logger.warning('CPU is assigned to \'device\' as fallback.')
 else:
     logger.info('CUDA is available.')
     device = torch.device('cuda')

@@ -38,11 +38,11 @@ else:
 
 if None in [torch.version.cuda, supported_cuda]:
     if torch.version.cuda is None:
-        logger.info('The installed pytorch is not built with CUDA. Install a CUDA-enabled.')
+        logger.warning('The installed pytorch is not built with CUDA. Install a CUDA-enabled.')
     if supported_cuda is None:
-        logger.info('The nvidia driver does not exist.')
+        logger.warning('The nvidia driver does not exist.')
 elif float(supported_cuda) < float(torch.version.cuda):
-    logger.info('The supported CUDA is lower than installed. Upgrade the driver.')
+    logger.warning('The supported CUDA is lower than installed. Upgrade the driver.')
 else:
     logger.info('- Nvidia driver checked -')
 
