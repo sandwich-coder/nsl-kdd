@@ -1,5 +1,7 @@
 #python3.12
 
+# For the pytorch, the pip by default installs a gpu version.
+
 
 #necessary
 numpy
