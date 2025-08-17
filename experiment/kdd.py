@@ -103,16 +103,14 @@ class Autoencoder(nn.Module):
         super().__init__()
 
         self._encoder = nn.Sequential(
-            nn.Sequential(nn.Linear(122, 128), nn.GELU()),
-            nn.Sequential(nn.Linear(128, 64), nn.GELU()),
-            nn.Sequential(nn.Linear(64, 32), nn.GELU()),
-            nn.Sequential(nn.Linear(32, 10), nn.Sigmoid()),
+            nn.Sequential(nn.Linear(122, 61), nn.GELU()),
+            nn.Sequential(nn.Linear(61, 30), nn.GELU()),
+            nn.Sequential(nn.Linear(30, 9), nn.Sigmoid()),
             )
         self._decoder = nn.Sequential(
-            nn.Sequential(nn.Linear(10, 32), nn.GELU()),
-            nn.Sequential(nn.Linear(32, 64), nn.GELU()),
-            nn.Sequential(nn.Linear(64, 128), nn.GELU()),
-            nn.Sequential(nn.Linear(128, 122), nn.Sigmoid()),
+            nn.Sequential(nn.Linear(9, 30), nn.GELU()),
+            nn.Sequential(nn.Linear(30, 61), nn.GELU()),
+            nn.Sequential(nn.Linear(61, 122), nn.Sigmoid()),
             )
 
         with torch.no_grad():
@@ -192,7 +190,7 @@ logger.info('\'device\' is allocated to the data and model.')
 optimizer = optim.AdamW(
     ae.parameters(),
     lr = 0.0001,
-    eps = 1e-7,
+    eps = 1e-6,
     )
 LossFn = nn.MSELoss
 loss_fn = LossFn()
@@ -200,7 +198,7 @@ loss_fn = LossFn()
 #training
 loader = DataLoader(
     data,
-    batch_size = 32,
+    batch_size = 16,
     shuffle = True,
     )
 batchloss = []
@@ -280,14 +278,14 @@ add_noise = False
 loss_fn = nn.L1Loss(reduction = 'none')    #different from that for training
 normal_data = ae.process(X, train = False)
 
-## This perturbation idea seems a failure.
+## Try purturbing only one feature per instance
 #perturbation
 if add_noise:
     noises = []
     for l in range(100):
         temp = torch.normal(
             torch.quantile(normal_data, 0.5, dim = 0),
-            (torch.quantile(normal_data, 0.75, dim = 0) - torch.quantile(normal_data, 0.25, dim = 0)) / 50,
+            (torch.quantile(normal_data, 0.75, dim = 0) - torch.quantile(normal_data, 0.25, dim = 0)) / 5,
             )
         temp = torch.unsqueeze(temp, 0)
         noises.append(temp)
