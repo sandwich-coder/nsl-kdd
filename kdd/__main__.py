@@ -5,12 +5,14 @@ if sys.version_info[:2] != (3, 12):
     raise RuntimeError('This module is intended to be run on Python 3.12.')
 
 
+#console inputs
 from commandline import (
     resplit,
     q_threshold,
     logging_level,
     )
 
+#packages
 from environment import *
 logger = logging.getLogger(name = 'main')
 logging.basicConfig(level = logging_level)

@@ -33,8 +33,6 @@ def _make_nsl_kdd(attack, resplit, raw):
 
 
     if raw:
-        df = df.astype({'attack':'category'}, copy = False)
-        df_ = df_.astype({'attack':'category'}, copy = False)
 
         normal = df[df['attack'] == 'normal'].copy()
         normal_ = df_[df_['attack'] == 'normal'].copy()
