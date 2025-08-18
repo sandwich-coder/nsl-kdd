@@ -51,7 +51,6 @@ def _make_nsl_kdd(attack, resplit, raw):
     df = pd.get_dummies(df, columns = categorical)
     df_ = pd.get_dummies(df_, columns = categorical)
     logger.info('The categorical features are one-hot-encoded.')
-    breakpoint()
 
     normal = df[df['attack'] == 'normal'].copy()    # Without copy the pandas prints a warning, not because it returns a view but it MIGHT return a view. I don't know what this means.
     normal.drop(columns = ['attack'], inplace = True)
