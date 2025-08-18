@@ -12,24 +12,24 @@ def _make_nsl_kdd(attack, resplit, raw):
         ]
 
     # The below code doesn't work. There seems some property issue.
-    # df.loc[:, categorical] = df.loc[:, categorical].astype('category', copy = False)
+    # merged.loc[:, categorical] = merged.loc[:, categorical].astype('category', copy = False)
     # The 'loc' property should be used with care for assignment operations.
-
-    #type conversion
     # The 'copy=False' option is virtually meaningless, since copy is required except very special cases.
     # The real intent of the option is to avoid copy when the input dtype and the target dtype are the same.
+    #merge, total categories, and split
+    merged = pd.concat([df, df_], axis = 'index')
     for l in categorical:
-        df[l] = df[l].astype('category', copy = False)
-        df_[l] = df_[l].astype('category', copy = False)
-
+        merged[l] = merged[l].astype('category', copy = False)
     if resplit:
-        temp = pd.concat([df, df_], axis = 'index')
         df, df_ = train_test_split(
-            temp,
+            merged,
             test_size = 0.2,
             shuffle = True,
-            stratify = temp['attack'],
+            stratify = merged['attack'],
             )
+    else:
+        df = merged.iloc[:df.shape[0], :]
+        df_ = merged.iloc[df.shape[0]:, :]
 
 
     if raw:
@@ -48,11 +48,10 @@ def _make_nsl_kdd(attack, resplit, raw):
 
 
     #one-hot
-    merged = pd.concat([df, df_], axis = 'index')
-    merged = pd.get_dummies(merged, columns = categorical)
-    df = merged.iloc[:df.shape[0], :]
-    df_ = merged.iloc[df.shape[0]:, :]
+    df = pd.get_dummies(df, columns = categorical)
+    df_ = pd.get_dummies(df_, columns = categorical)
     logger.info('The categorical features are one-hot-encoded.')
+    breakpoint()
 
     normal = df[df['attack'] == 'normal'].copy()    # Without copy the pandas prints a warning, not because it returns a view but it MIGHT return a view. I don't know what this means.
     normal.drop(columns = ['attack'], inplace = True)
