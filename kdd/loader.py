@@ -48,8 +48,8 @@ def _make_nsl_kdd(attack, resplit, raw):
 
 
     #one-hot
-    df = pd.get_dummies(df, columns = categorical)
-    df_ = pd.get_dummies(df_, columns = categorical)
+    df = pd.get_dummies(df, columns = categorical, dtype = 'int64')
+    df_ = pd.get_dummies(df_, columns = categorical, dtype = 'int64')
     logger.info('The categorical features are one-hot-encoded.')
 
     normal = df[df['attack'] == 'normal'].copy()    # Without copy the pandas prints a warning, not because it returns a view but it MIGHT return a view. I don't know what this means.

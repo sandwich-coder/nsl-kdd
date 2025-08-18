@@ -7,7 +7,7 @@ df = pd.DataFrame({
 df = df.astype('category', copy = False)
 
 
-first = df.iloc[:3, 0].copy()   # first three
+first = df.iloc[:3, 0].copy()    #first three
 second = df.iloc[3:, 0].copy()    #last three
 
 first_onehot = pd.get_dummies(first, columns = ['letter'])
