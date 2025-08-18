@@ -6,12 +6,12 @@
 #necessary
 numpy
 scipy
+matplotlib
 
 #default
 pandas
 torch
 xgboost
-matplotlib
 rich
 
 #extra
