@@ -65,7 +65,7 @@ class Trainer:
             shuffle = True,
             )
         self._batchloss = []
-        logger.info(' - Training Start -')
+        logger.info(' - Training -')
         if logger.getEffectiveLevel() > 20:
             pass
         else:
@@ -98,15 +98,12 @@ class Trainer:
             if logger.getEffectiveLevel() > 20:
                 pass
             else:
-                print('{epoch:>5} | {epochloss:.4E}'.format(
-                    epoch = l + 1,
-                    epochloss = last_epoch.mean(axis = 0, dtype = 'float64').tolist(),
-                    ))
+                print(f"{l+1:>5} | {last_epoch.mean(axis = 0, dtype = 'float64').tolist():.4E}")
 
             self._batchloss.append(last_epoch)
 
         self._batchloss = np.concatenate(self._batchloss, axis = 0)
-        logger.info(' - Training finished -')
+        logger.info(' - Finished -')
 
         #back to cpu
         self._ae.cpu()
