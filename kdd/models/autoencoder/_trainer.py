@@ -98,7 +98,10 @@ class Trainer:
             if logger.getEffectiveLevel() > 20:
                 pass
             else:
-                print(f"{l+1:>5} | {last_epoch.mean(axis = 0, dtype = 'float64').tolist():.4E}")
+                print('{epoch:>5} | {epochloss:.4E}'.format(
+                    epoch = l + 1,
+                    epochloss = last_epoch.mean(axis = 0, dtype = 'float64').tolist(),
+                    ))    # I prefer the keyword-based 'format' method than the f-string, as the former can handle "temporary" values easier.
 
             self._batchloss.append(last_epoch)
 
