@@ -3,12 +3,12 @@
 # For the pytorch, the pip by default installs a gpu version.
 
 
-#necessary
+#essential
 numpy
 scipy
 matplotlib
 
-#default
+#basic
 pandas
 torch
 xgboost
