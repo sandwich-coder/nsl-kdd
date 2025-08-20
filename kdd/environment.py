@@ -5,11 +5,6 @@ import time
 import logging
 import numpy as np
 from scipy import linalg as la
-
-import pandas as pd
-import torch
-from torch import optim, nn
-import xgboost as xgb
 import matplotlib as mpl
 from matplotlib import pyplot as pp
 mpl.rcParams.update({
@@ -22,6 +17,11 @@ mpl.rcParams.update({
     'lines.markersize':1,
     'lines.linewidth':0.5,
     })
+
+import pandas as pd
+import torch
+from torch import optim, nn
+import xgboost as xgb
 from rich.console import Console
 from rich.text import Text
 from rich.table import Table
