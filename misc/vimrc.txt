@@ -1,0 +1,12 @@
+filetype plugin indent on
+let g:pyindent_open_paren='shiftwidth()'
+set selection=exclusive
+
+set tabstop=4
+set softtabstop=4
+set expandtab
+
+set number
+syntax on
+
+colorscheme slate
