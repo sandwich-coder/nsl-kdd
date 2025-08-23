@@ -113,7 +113,7 @@ class Trainer:
 
 
     def plot_descent(self):
-        fig = pp.figure(layout = 'constrained', figsize = (10, 7.3), facecolor = 'antiquewhite')
+        fig = pp.figure(layout = 'constrained', figsize = (10, 7.3), facecolor = 'ivory')
         ax = fig.add_subplot()
         ax.set_box_aspect(0.7)
         ax.set_title('Training Loss')
