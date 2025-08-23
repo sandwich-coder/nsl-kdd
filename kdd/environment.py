@@ -8,14 +8,17 @@ from scipy import linalg as la
 import matplotlib as mpl
 from matplotlib import pyplot as pp
 mpl.rcParams.update({
-    'figure.figsize':(10, 10),
-    'axes.titlesize':'medium',
-    'axes.labelsize':'x-small',
-    'xtick.labelsize':'xx-small',
-    'ytick.labelsize':'xx-small',
-    'legend.fontsize':'x-small',
+    'figure.figsize':[10, 10],
+    'figure.edgecolor':'none',
+    'figure.facecolor':'none',
+    'axes.spines.top':False,
+    'axes.spines.right':False,
+    'axes.edgecolor':'none',
+    'axes.facecolor':'none',
     'lines.markersize':1,
     'lines.linewidth':0.5,
+    'legend.edgecolor':'none',
+    'legend.facecolor':'none',
     })
 
 import pandas as pd

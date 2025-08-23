@@ -205,7 +205,7 @@ class Autoencoder(nn.Module):
         if truth is not None:
 
             if return_histplot:
-                fig = pp.figure(layout = 'constrained')
+                fig = pp.figure(layout = 'constrained', facecolor = 'antiquewhite')
                 ax = fig.add_subplot()
                 ax.set_box_aspect(0.6)
                 ax.set_title('Reconstruction Loss')
