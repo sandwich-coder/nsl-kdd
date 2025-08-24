@@ -7,7 +7,7 @@ numpy
 scipy
 matplotlib
 
-#basic
+#common
 pandas
 torch
 xgboost
