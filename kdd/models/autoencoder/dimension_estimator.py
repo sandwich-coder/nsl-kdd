@@ -1,4 +1,4 @@
-from environment import *
+from common import *
 logger = logging.getLogger(name = __name__)
 from scipy.spatial.distance import cdist
 from sklearn.ensemble import IsolationForest

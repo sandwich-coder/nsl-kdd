@@ -1,4 +1,4 @@
-from environment import *
+from common import *
 logger = logging.getLogger(name = __name__)
 from sklearn.model_selection import train_test_split
 

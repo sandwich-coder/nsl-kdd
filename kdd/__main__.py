@@ -13,7 +13,7 @@ from commandline import (
     )
 
 #packages
-from environment import *
+from common import *
 logger = logging.getLogger(name = 'main')
 logging.basicConfig(level = logging_level)
 

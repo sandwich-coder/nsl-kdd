@@ -1,4 +1,4 @@
-from environment import *
+from common import *
 logger = logging.getLogger(name = __name__)
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import precision_score, recall_score, f1_score

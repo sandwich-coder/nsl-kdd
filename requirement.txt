@@ -16,11 +16,10 @@ rich
 #extra
 lightgbm
 tqdm
-
-#supplementary
+pyyaml
 scikit-learn
 seaborn
 
-#data
-pyarrow
+#datasets
 kagglehub
+torchvision
