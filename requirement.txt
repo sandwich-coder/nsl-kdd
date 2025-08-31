@@ -22,4 +22,4 @@ seaborn
 
 #datasets
 kagglehub
-torchvision
+pyarrow
