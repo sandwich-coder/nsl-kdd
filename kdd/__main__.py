@@ -83,16 +83,19 @@ ae = Autoencoder()
 
 #trained
 ae.compile(LossAD = nn.L1Loss)
-descent = ae.fit(X, return_descentplot = True, q_threshold = q_threshold, auto_latent = True)
 
-#detection
-print('\n\n --- Train ---\n')
-prediction, reconstructions = ae.detect(mixed, truth, return_histplot = True)
-print('\n\n --- Test ---\n')
-prediction_, reconstructions_ = ae.detect(mixed_, truth_, return_histplot = True)
+####comparison
+latents = [3, 5, 7, 9, 11, 13, 15]
+for l in latents:
+    ae.fit(X, latent = l, q_threshold = q_threshold)
 
-#saved
-os.makedirs('figures', exist_ok = True)
-descent.savefig('figures/descent.png', dpi = 300)
-reconstructions.savefig('figures/reconstruction-train.png', dpi = 600)
-reconstructions_.savefig('figures/reconstruction-test.png', dpi = 600)
+    #detection
+    print('\n\n --- Train ---\n')
+    prediction, reconstructions = ae.detect(mixed, truth, return_histplot = True)
+    print('\n\n --- Test ---\n')
+    prediction_, reconstructions_ = ae.detect(mixed_, truth_, return_histplot = True)
+
+    #saved
+    os.makedirs('figures', exist_ok = True)
+    reconstructions.savefig('figures/reconstruction-{latent}-train.png'.format(latent = l), dpi = 600)
+    reconstructions_.savefig('figures/reconstruction-{latent}-test.png'.format(latent = l), dpi = 600)

@@ -92,9 +92,11 @@ class Autoencoder(nn.Module):
             self._LossAD = LossFn
 
 
-    def fit(self, X, return_descentplot = False, auto_latent = False, q_threshold = 0.99):
+    def fit(self, X, latent = 10, return_descentplot = False, auto_latent = False, q_threshold = 0.99):
         if not isinstance(X, np.ndarray):
             raise TypeError('The input should be a \'numpy.ndarray\'.')
+        if not isinstance(latent, int):
+            raise TypeError('The latent dimension should be an integer.')
         if not isinstance(return_descentplot, bool):
             raise TypeError('\'return_descentplot\' should be boolean.')
         if not isinstance(auto_latent, bool):
@@ -105,20 +107,23 @@ class Autoencoder(nn.Module):
             raise ValueError('The input must be tabular.')
         if X.dtype != np.float64:
             raise ValueError('The input must be of \'numpy.float64\'.')
+        if latent < 1:
+            raise ValueError('The latent dimension must be positive.')
         if not 0 < q_threshold < 1:
             raise ValueError('The detection threshold must be between 0 and 1.')
         assert hasattr(self, '_trainer'), 'no trainer'
         assert hasattr(self, '_LossAD'), 'no detection loss'
 
+        #dimension estimation
         if auto_latent:
             estimator = DimensionEstimator()
             dimension = estimator(X, exact = True, trim = True)
-            logger.info('intrinsic dimension: {:.2f}'.format(dimension))
+            logger.info('intrinsic dimension: {dimension:.2f}'.format(dimension = dimension))
             latent = round(dimension)
-            logger.info('The latent dimension is set to {}'.format(latent))
-        else:
-            latent = 9
+        logger.info('The bottleneck is set to {latent}'.format(latent = latent))
+
         fold = 2
+        self._latent = latent    #stored for the loss plot
 
         self._in_features = 122
         self._encoder = nn.Sequential()
@@ -208,12 +213,12 @@ class Autoencoder(nn.Module):
                 fig = pp.figure(layout = 'constrained', facecolor = 'ivory')
                 ax = fig.add_subplot()
                 ax.set_box_aspect(0.6)
-                ax.set_title('Reconstruction Loss')
+                ax.set_title('Reconstruction Loss (bottleneck: {latent})'.format(latent = self._latent))
                 ax.set_xlabel('loss')
                 ax.set_ylabel('proportion (%)')
                 pp.setp(ax.get_yticklabels(), rotation = 90, va = 'center')    # The 'ha' and 'va' options specify the realignment. If "rotation_mode='anchor'" it realigns before the rotation, otherwise after the rotation.
 
-                bincount = 500
+                bincount = 300
                 binrange = [
                     np.quantile(loss, 0, axis = 0),
                     np.quantile(loss, 0.99, axis = 0),
@@ -244,24 +249,10 @@ class Autoencoder(nn.Module):
                     color = 'tab:red', alpha = 0.4,
                     label = 'anomalous',
                     )
-
-                #Q points
-                ax.axvline(
-                    x = np.quantile(normal_loss, 0.9),
-                    linestyle = '-.', linewidth = 0.2,
-                    color = 'tab:grey',
-                    label = 'Q 0.9',
-                    )
-                ax.axvline(
-                    x = np.quantile(normal_loss, 0.99),
-                    linestyle = '-.', linewidth = 0.2,
-                    color = 'purple',
-                    label = 'Q 0.99',
-                    )
-                ax.axvline(
+                vline = ax.axvline(
                     x = self._threshold,
-                    linestyle = '--', linewidth = 0.2,
-                    color = 'black',
+                    marker = '', color = 'black', alpha = 0.8,
+                    linestyle = '--', linewidth = 1,
                     label = 'threshold',
                     )
 
