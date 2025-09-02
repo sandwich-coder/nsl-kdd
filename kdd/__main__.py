@@ -85,7 +85,7 @@ ae = Autoencoder()
 ae.compile(LossAD = nn.L1Loss)
 
 ####comparison
-latents = [3, 5, 7, 9, 11, 13, 15]
+latents = [2, 4, 9, 18, 36]
 for l in latents:
     ae.fit(X, latent = l, q_threshold = q_threshold)
 
