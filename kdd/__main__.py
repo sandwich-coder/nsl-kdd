@@ -47,11 +47,14 @@ else:
     logger.info('- Nvidia driver checked -')
 
 
-dataset = 'nsl-kdd'
+dataset = 'nsl-kdd' #For later extensions with multiple datasets
 
 #loaded
 loader = Loader()
-normal, normal_ = loader.load(dataset, attack = False, resplit = resplit)
+normal = np.concatenate(
+    [*loader.load(dataset, attack = False, resplit = resplit)],
+    axis = 0,
+    ) # The anomalous data the only difference for the metrics, normals are merged.
 anomalous, anomalous_ = loader.load(dataset, attack = True, resplit = resplit)
 
 #for traditional ML
@@ -61,19 +64,18 @@ anomalous_df, anomalous_df_ = loader.load(dataset, attack = True, resplit = resp
 
 # - prepared -
 
-mixed = np.concatenate([normal, anomalous], axis = 0)
-truth = np.ones(mixed.shape[0], dtype = 'int64')
+mix = np.concatenate([normal, anomalous], axis = 0)
+truth = np.ones(mix.shape[0], dtype = 'int64')
 truth[:len(normal)] = 0
 truth = truth.astype('bool')
 
-mixed_ = np.concatenate([normal_, anomalous_], axis = 0)
-truth_ = np.ones(mixed_.shape[0], dtype = 'int64')
-truth_[:len(normal_)] = 0
+mix_ = np.concatenate([normal, anomalous_], axis = 0)
+truth_ = np.ones(mix_.shape[0], dtype = 'int64')
+truth_[:len(normal)] = 0
 truth_ = truth_.astype('bool')
 
 #training set
 X = normal.copy()
-X_ = normal_.copy()
 
 #model
 ae = Autoencoder()
@@ -91,9 +93,9 @@ for l in latents:
 
     #detection
     print('\n\n --- Train ---\n')
-    prediction, reconstructions = ae.detect(mixed, truth, return_histplot = True)
+    prediction, reconstructions = ae.detect(mix, truth, return_histplot = True)
     print('\n\n --- Test ---\n')
-    prediction_, reconstructions_ = ae.detect(mixed_, truth_, return_histplot = True)
+    prediction_, reconstructions_ = ae.detect(mix_, truth_, return_histplot = True)
 
     #saved
     os.makedirs('figures', exist_ok = True)
