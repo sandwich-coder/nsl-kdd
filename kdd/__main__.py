@@ -51,11 +51,11 @@ dataset = 'nsl-kdd' #For later extensions with multiple datasets
 
 #loaded
 loader = Loader()
-normal = np.concatenate(
-    [*loader.load(dataset, attack = False, resplit = resplit)],
+normal, normal_ = loader.load(dataset, attack = False, resplit = resplit)
+anomalous = np.concatenate(
+    [*loader.load(dataset, attack = True, resplit = resplit)],
     axis = 0,
-    ) # The anomalous data the only difference for the metrics, normals are merged.
-anomalous, anomalous_ = loader.load(dataset, attack = True, resplit = resplit)
+    )
 
 #for traditional ML
 normal_df, normal_df_ = loader.load(dataset, attack = False, resplit = resplit, raw = True)
@@ -64,14 +64,12 @@ anomalous_df, anomalous_df_ = loader.load(dataset, attack = True, resplit = resp
 
 # - prepared -
 
-mix = np.concatenate([normal, anomalous], axis = 0)
-truth = np.ones(mix.shape[0], dtype = 'int64')
-truth[:len(normal)] = 0
-truth = truth.astype('bool')
-
-mix_ = np.concatenate([normal, anomalous_], axis = 0)
-truth_ = np.ones(mix_.shape[0], dtype = 'int64')
-truth_[:len(normal)] = 0
+mix_ = np.concatenate(
+    [normal_, anomalous],
+    axis = 0,
+    )
+truth_ = np.ones(len(mix_), dtype = 'int64')
+truth_[:len(normal_)] = 0
 truth_ = truth_.astype('bool')
 
 #training set
@@ -92,12 +90,9 @@ for l in latents:
     ae.fit(X, latent = l, q_threshold = q_threshold)
 
     #detection
-    print('\n\n --- Train ---\n')
-    prediction, reconstructions = ae.detect(mix, truth, return_histplot = True)
-    print('\n\n --- Test ---\n')
+    print('\n\n --- Result ---\n')
     prediction_, reconstructions_ = ae.detect(mix_, truth_, return_histplot = True)
 
     #saved
     os.makedirs('figures', exist_ok = True)
-    reconstructions.savefig('figures/reconstruction-{latent}-train.png'.format(latent = l), dpi = 600)
-    reconstructions_.savefig('figures/reconstruction-{latent}-test.png'.format(latent = l), dpi = 600)
+    reconstructions_.savefig('figures/reconstruction-{latent}.png'.format(latent = l), dpi = 300)
