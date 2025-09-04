@@ -64,8 +64,13 @@ anomalous_df, anomalous_df_ = loader.load(dataset, attack = True, resplit = resp
 
 # - prepared -
 
+sampler = Sampler()
+
 mix_ = np.concatenate(
-    [normal_, anomalous],
+    [
+        normal_,
+        sampler.sample(anomalous, round(0.5 * len(normal_))),
+        ],
     axis = 0,
     )
 truth_ = np.ones(len(mix_), dtype = 'int64')
@@ -81,11 +86,12 @@ ae = Autoencoder()
 
 # - training -
 
-#trained
+#compiled
 ae.compile(LossAD = nn.L1Loss)
 
+"""
 ####comparison
-latents = [2, 4, 9, 18, 36]
+latents = [1, 2, 4, 9, 18, 36, 72]
 for l in latents:
     ae.fit(X, latent = l, q_threshold = q_threshold)
 
@@ -96,3 +102,15 @@ for l in latents:
     #saved
     os.makedirs('figures', exist_ok = True)
     reconstructions_.savefig('figures/reconstruction-{latent}.png'.format(latent = l), dpi = 300)
+"""
+
+#trained
+ae.fit(X, q_threshold = q_threshold, auto_latent = True)
+
+#detection
+print('\n\n --- Result ---\n')
+prediction_, reconstructions_ = ae.detect(mix_, truth_, return_histplot = True)
+
+#saved
+os.makedirs('figures', exist_ok = True)
+reconstructions_.savefig('figures/reconstruction.png', dpi = 300)
