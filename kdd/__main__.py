@@ -52,10 +52,7 @@ dataset = 'nsl-kdd' #For later extensions with multiple datasets
 #loaded
 loader = Loader()
 normal, normal_ = loader.load(dataset, attack = False, resplit = resplit)
-anomalous = np.concatenate(
-    [*loader.load(dataset, attack = True, resplit = resplit)],
-    axis = 0,
-    )
+anomalous, anomalous_ = loader.load(dataset, attack = True, resplit = resplit)
 
 #for traditional ML
 normal_df, normal_df_ = loader.load(dataset, attack = False, resplit = resplit, raw = True)
@@ -66,13 +63,10 @@ anomalous_df, anomalous_df_ = loader.load(dataset, attack = True, resplit = resp
 
 sampler = Sampler()
 
-mix_ = np.concatenate(
-    [
-        normal_,
-        sampler.sample(anomalous, round(0.5 * len(normal_))),
-        ],
-    axis = 0,
-    )
+mix_ = np.concatenate([
+    normal_,
+    anomalous_,
+    ], axis = 0)
 truth_ = np.ones(len(mix_), dtype = 'int64')
 truth_[:len(normal_)] = 0
 truth_ = truth_.astype('bool')
