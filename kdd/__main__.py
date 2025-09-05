@@ -81,25 +81,10 @@ ae = Autoencoder()
 # - training -
 
 #compiled
-ae.compile(LossAD = nn.L1Loss)
-
-"""
-####comparison
-latents = [1, 2, 4, 9, 18, 36, 72]
-for l in latents:
-    ae.fit(X, latent = l, q_threshold = q_threshold)
-
-    #detection
-    print('\n\n --- Result ---\n')
-    prediction_, reconstructions_ = ae.detect(mix_, truth_, return_histplot = True)
-
-    #saved
-    os.makedirs('figures', exist_ok = True)
-    reconstructions_.savefig('figures/reconstruction-{latent}.png'.format(latent = l), dpi = 300)
-"""
+ae.compile() ## Figure out why the result is better when the detection loss is MAE, different from the training loss, MSE.
 
 #trained
-ae.fit(X, q_threshold = q_threshold, auto_latent = True)
+ae.fit(X, latent = 9, q_threshold = q_threshold)
 
 #detection
 print('\n\n --- Result ---\n')
