@@ -211,12 +211,19 @@ class Autoencoder(nn.Module):
 
             if return_histplot:
                 fig = pp.figure(layout = 'constrained', facecolor = 'ivory')
-                ax = fig.add_subplot()
-                ax.set_box_aspect(0.6)
-                ax.set_title('Reconstruction Loss (bottleneck: {latent})'.format(latent = self._latent))
-                ax.set_xlabel('loss')
-                ax.set_ylabel('proportion (%)')
-                pp.setp(ax.get_yticklabels(), rotation = 90, va = 'center')    # The 'ha' and 'va' options specify the realignment. If "rotation_mode='anchor'" it realigns before the rotation, otherwise after the rotation.
+                gs = fig.add_gridspec(nrows = 2, ncols = 1)
+                ax_1 = fig.add_subplot(gs[-1+1])
+                ax_1.set_box_aspect(0.5)
+                ax_1.set_title('Reconstruction Loss (bottleneck: {latent})'.format(latent = self._latent))
+                ax_1.set_xlabel('loss')
+                ax_1.set_ylabel('proportion (%)')
+                pp.setp(ax_1.get_yticklabels(), rotation = 90, va = 'center') # The 'ha' and 'va' options specify the realignment. If "rotation_mode='anchor'" it realigns before the rotation, otherwise after the rotation.
+                ax_2 = fig.add_subplot(gs[-1+2])
+                ax_2.set_box_aspect(0.3)
+                ax_2.set_title('CMF')
+                ax_2.set_xlabel('loss')
+                ax_2.set_ylabel('accumulation')
+                pp.setp(ax_2.get_yticklabels(), rotation = 90, va = 'center')
 
                 bincount = 300
                 binrange = [
@@ -235,28 +242,57 @@ class Autoencoder(nn.Module):
                 prob_anomalous = prob_anomalous / prob_anomalous.sum(axis = 0, dtype = 'int64')
 
                 #histogram plots
-                plot_1 = ax.stairs(
+                plot_1_1 = ax_1.stairs(
                     prob_normal * 100,
                     edges = edge_normal,
                     fill = True,
                     color = 'tab:blue', alpha = 0.4,
                     label = 'normal',
                     )
-                plot_2 = ax.stairs(
+                plot_1_2 = ax_1.stairs(
                     prob_anomalous * 100,
                     edges = edge_anomalous,
                     fill = True,
                     color = 'tab:red', alpha = 0.4,
                     label = 'anomalous',
                     )
-                vline = ax.axvline(
+                ax_1.axvline(
                     x = self._threshold,
                     marker = '', color = 'black', alpha = 0.8,
                     linestyle = '--', linewidth = 1,
                     label = 'threshold',
                     )
 
-                ax.legend()
+                #cmf plots
+                plot_2_1 = ax_2.plot(
+                    edge_normal,
+                    np.cumsum(
+                        np.concatenate([np.array([0.]), prob_normal], axis = 0),
+                        axis = 0, dtype = 'float64',
+                        ),
+                    marker = '', color = 'tab:blue', alpha = 0.8,
+                    linestyle = '-', linewidth = 1.5,
+                    label = 'normal',
+                    )
+                plot_2_2 = ax_2.plot(
+                    edge_anomalous,
+                    np.cumsum(
+                        np.concatenate([np.array([0.]), prob_anomalous], axis = 0),
+                        axis = 0, dtype = 'float64',
+                        ),
+                    marker = '', color = 'tab:red', alpha = 0.8,
+                    linestyle = '-', linewidth = 1.5,
+                    label = 'anomalous',
+                    )
+                ax_2.axvline(
+                    x = self._threshold,
+                    marker = '', color = 'black', alpha = 0.8,
+                    linestyle = '--', linewidth = 1,
+                    label = 'threshold',
+                    )
+
+                ax_1.legend()
+                ax_2.legend()
                 returns.append(fig)
 
 
