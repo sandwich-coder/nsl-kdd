@@ -23,7 +23,7 @@ def _make_nsl_kdd(attack, resplit, raw):
     if resplit:
         df, df_ = train_test_split(
             merged,
-            test_size = 0.2,
+            test_size = df_.shape[0],
             shuffle = True,
             stratify = merged['attack'],
             )

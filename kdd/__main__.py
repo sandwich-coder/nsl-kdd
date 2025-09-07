@@ -81,7 +81,7 @@ ae = Autoencoder()
 # - training -
 
 #compiled
-ae.compile() ## Figure out why the result is better when the detection loss is MAE, different from the training loss, MSE.
+ae.compile(LossAD = nn.L1Loss) ## Figure out why the result is better when the detection loss is MAE, different from the training loss, MSE.
 
 #trained
 ae.fit(X, latent = 9, q_threshold = q_threshold)
