@@ -87,7 +87,7 @@ class Trainer:
                 optimizer.step()
                 optimizer.zero_grad()
 
-                last_epoch.append(loss.detach())    ###
+                last_epoch.append(loss.detach()) ###
 
 
             last_epoch = torch.stack(last_epoch, dim = 0)
@@ -101,7 +101,7 @@ class Trainer:
                 print('{epoch:>5} | {epochloss:.4E}'.format(
                     epoch = l + 1,
                     epochloss = last_epoch.mean(axis = 0, dtype = 'float64').tolist(),
-                    ))    # I prefer the keyword-based 'format' method than the f-string, as the former can handle "temporary" values easier.
+                    )) # I prefer the keyword-based 'format' method than the f-string, as the former can handle "temporary" values easier.
 
             self._batchloss.append(last_epoch)
 
