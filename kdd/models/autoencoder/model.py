@@ -92,30 +92,29 @@ class Autoencoder(nn.Module):
             self._LossAD = LossFn
 
 
-    def fit(self, X, latent = 10, return_descentplot = False, auto_latent = False, q_threshold = 0.99):
+    def fit(self, X, latent = 'auto', return_descentplot = False, q_threshold = 0.99):
         if not isinstance(X, np.ndarray):
             raise TypeError('The input should be a \'numpy.ndarray\'.')
-        if not isinstance(latent, int):
+        if not isinstance(latent, int) and latent != 'auto':
             raise TypeError('The latent dimension should be an integer.')
         if not isinstance(return_descentplot, bool):
             raise TypeError('\'return_descentplot\' should be boolean.')
-        if not isinstance(auto_latent, bool):
-            raise TypeError('Whether to enable the dimension estimation should be boolean.')
         if not isinstance(q_threshold, float):
             raise TypeError('The detection threshold should be a float.')
         if X.ndim != 2:
             raise ValueError('The input must be tabular.')
         if X.dtype != np.float64:
             raise ValueError('The input must be of \'numpy.float64\'.')
-        if latent < 1:
-            raise ValueError('The latent dimension must be positive.')
+        if latent != 'auto':
+            if latent < 1:
+                raise ValueError('The latent dimension must be positive.')
         if not 0 < q_threshold < 1:
             raise ValueError('The detection threshold must be between 0 and 1.')
         assert hasattr(self, '_trainer'), 'no trainer'
         assert hasattr(self, '_LossAD'), 'no detection loss'
 
         #dimension estimation
-        if auto_latent:
+        if latent == 'auto':
             estimator = DimensionEstimator()
             dimension = estimator(X, exact = True, trim = True)
             logger.info('intrinsic dimension: {dimension:.2f}'.format(dimension = dimension))
@@ -123,7 +122,7 @@ class Autoencoder(nn.Module):
         logger.info('The bottleneck is set to {latent}'.format(latent = latent))
 
         fold = 2
-        self._latent = latent    #stored for the loss plot
+        self._latent = latent #stored for the loss plot
 
         self._in_features = 122
         self._encoder = nn.Sequential()
@@ -225,7 +224,7 @@ class Autoencoder(nn.Module):
                     ]
 
                 #normal pmf
-                normal_loss = loss[~truth]    # Simple indexing, which includes slicing, returns a view, or a shallow copy in other words. However, "fancy indexing" returns a copy instead of a view, differing from the numpy's usual indexing behavior one would expect. Therefore the names are separated without copying.
+                normal_loss = loss[~truth] # Simple indexing, which includes slicing, returns a view, or a shallow copy in other words. However, "fancy indexing" returns a copy instead of a view, differing from the numpy's usual indexing behavior one would expect. Therefore the names are separated without copying.
                 prob_normal, edge_normal = np.histogram(normal_loss, range = binrange, bins = bincount)
                 prob_normal = prob_normal / prob_normal.sum(axis = 0, dtype = 'int64')
 
@@ -282,10 +281,10 @@ class Autoencoder(nn.Module):
                     )
 
                 ax.legend(handles = [
-                    plot_1,
-                    plot_2,
                     vline,
+                    plot_1,
                     plot_3[0],
+                    plot_2,
                     plot_4[0],
                     ], loc = 'upper right')
                 returns.append(fig)

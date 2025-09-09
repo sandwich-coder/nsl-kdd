@@ -7,15 +7,16 @@ if sys.version_info[:2] != (3, 12):
 
 #console inputs
 from commandline import (
-    resplit,
-    q_threshold,
-    logging_level,
+    LATENT,
+    RESPLIT,
+    Q_THRESHOLD,
+    LOGGING_LEVEL,
     )
 
 #packages
 from common import *
 logger = logging.getLogger(name = 'main')
-logging.basicConfig(level = logging_level)
+logging.basicConfig(level = LOGGING_LEVEL)
 
 from loader import Loader
 from models import Autoencoder
@@ -51,12 +52,12 @@ dataset = 'nsl-kdd' #For later extensions with multiple datasets
 
 #loaded
 loader = Loader()
-normal, normal_ = loader.load(dataset, attack = False, resplit = resplit)
-anomalous, anomalous_ = loader.load(dataset, attack = True, resplit = resplit)
+normal, normal_ = loader.load(dataset, attack = False, resplit = RESPLIT)
+anomalous, anomalous_ = loader.load(dataset, attack = True, resplit = RESPLIT)
 
 #for traditional ML
-normal_df, normal_df_ = loader.load(dataset, attack = False, resplit = resplit, raw = True)
-anomalous_df, anomalous_df_ = loader.load(dataset, attack = True, resplit = resplit, raw = True)
+normal_df, normal_df_ = loader.load(dataset, attack = False, resplit = RESPLIT, raw = True)
+anomalous_df, anomalous_df_ = loader.load(dataset, attack = True, resplit = RESPLIT, raw = True)
 
 
 # - prepared -
@@ -84,7 +85,7 @@ ae = Autoencoder()
 ae.compile(LossAD = nn.L1Loss) ## Figure out why the result is better when the detection loss is MAE, different from the training loss, MSE.
 
 #trained
-ae.fit(X, latent = 9, q_threshold = q_threshold)
+ae.fit(X, latent = LATENT, q_threshold = Q_THRESHOLD)
 
 #detection
 print('\n\n --- Result ---\n')
@@ -92,4 +93,4 @@ prediction_, reconstructions_ = ae.detect(mix_, truth_, return_histplot = True)
 
 #saved
 os.makedirs('figures', exist_ok = True)
-reconstructions_.savefig('figures/reconstruction.png', dpi = 300)
+reconstructions_.savefig('figures/reconstruction.png', dpi = 600)
