@@ -206,6 +206,8 @@ class Autoencoder(nn.Module):
         detection = loss >= self._threshold
         returns.append(detection)
 
+        ... ## The ROC plot is to be added.
+
         if truth is not None:
 
             if return_histplot:
