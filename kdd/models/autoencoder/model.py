@@ -168,11 +168,13 @@ class Autoencoder(nn.Module):
             return self._trainer.plot_descent()
 
 
-    def detect(self, mix, truth = None, return_histplot = False):
+    def detect(self, mix, truth = None, return_rocplot = False, return_histplot = False):
         if not isinstance(mix, np.ndarray):
             raise TypeError('The dataset should be a \'numpy.ndarray\'.')
         if not isinstance(truth, np.ndarray) and truth is not None:
             raise TypeError('\'truth\' should be a \'numpy.ndarray\'.')
+        if not isinstance(return_rocplot, bool):
+            raise TypeError('\'return_rocplot\' should be boolean.')
         if not isinstance(return_histplot, bool):
             raise TypeError('\'return_histplot\' should be boolean.')
         if mix.ndim != 2:
@@ -187,6 +189,8 @@ class Autoencoder(nn.Module):
             raise ValueError('\'truth\' must be of \'numpy.bool\'.')
         if len(truth) != len(mix) and truth is not None:
             raise ValueError('\'truth\' must have the same length as the dataset.')
+        if truth is None and return_rocplot:
+            raise ValueError('\'return_rocplot\' is valid only when the truth is given.')
         if truth is None and return_histplot:
             raise ValueError('\'return_histplot\' is valid only when the truth is given.')
         assert hasattr(self, '_threshold'), 'no threshold'
@@ -206,18 +210,62 @@ class Autoencoder(nn.Module):
         detection = loss >= self._threshold
         returns.append(detection)
 
-        ... ## The ROC plot is to be added.
-
         if truth is not None:
 
+            if return_rocplot:
+                thresholds = np.linspace(
+                    np.quantile(loss, 0, axis = 0),
+                    np.quantile(loss, 0.99, axis = 0),
+                    num = 300, endpoint = False, dtype = 'float64',
+                    )
+                thresholds = thresholds.tolist()
+
+                tp_rate = []
+                fp_rate = []
+                for l in thresholds:
+                    last_result = loss >= l
+
+                    #positives
+                    true_positives = truth & last_result
+                    true_positives = true_positives.astype('int64').sum(axis = 0, dtype = 'float64')
+                    false_negatives = truth & ~last_result
+                    false_negatives = false_negatives.astype('int64').sum(axis = 0, dtype = 'float64')
+                    tp_rate.append(true_positives / (true_positives + false_negatives))
+
+                    #negatives
+                    true_negatives = ~truth & ~last_result
+                    true_negatives = true_negatives.astype('int64').sum(axis = 0, dtype = 'float64')
+                    false_positives = ~truth & last_result
+                    false_positives = false_positives.astype('int64').sum(axis = 0, dtype = 'float64')
+                    fp_rate.append(false_positives / (true_negatives + false_positives))
+
+                tp_rate = np.stack(tp_rate, axis = 0)
+                fp_rate = np.stack(fp_rate, axis = 0)
+
+                fig1 = pp.figure(layout = 'constrained', facecolor = 'ivory')
+                fig1.suptitle('ROC')
+                ax1 = fig1.add_subplot()
+                ax1.set_box_aspect(0.8)
+                ax1.set_xlabel('FP rate')
+                ax1.set_ylabel('TP rate')
+                pp.setp(ax1.get_yticklabels(), rotation = 90, ha = 'right', va = 'center')
+
+                plot1 = ax1.plot(
+                    fp_rate, tp_rate,
+                    marker = '', color = 'tab:blue',
+                    linestyle = '-', linewidth = 2,
+                    )
+
+                returns.append(fig1)
+
             if return_histplot:
-                fig = pp.figure(layout = 'constrained', facecolor = 'ivory')
-                ax = fig.add_subplot()
-                ax.set_box_aspect(0.5)
-                ax.set_title('Reconstruction Loss (bottleneck: {latent})'.format(latent = self._latent))
-                ax.set_xlabel('loss')
-                ax.set_ylabel('proportion (%)')
-                pp.setp(ax.get_yticklabels(), rotation = 90, ha = 'right', va = 'center')
+                fig2 = pp.figure(layout = 'constrained', facecolor = 'ivory')
+                ax2 = fig2.add_subplot()
+                ax2.set_box_aspect(0.5)
+                ax2.set_title('Reconstruction Loss (bottleneck: {latent})'.format(latent = self._latent))
+                ax2.set_xlabel('loss')
+                ax2.set_ylabel('proportion (%)')
+                pp.setp(ax2.get_yticklabels(), rotation = 90, ha = 'right', va = 'center')
 
                 bincount = 300
                 binrange = [
@@ -236,21 +284,21 @@ class Autoencoder(nn.Module):
                 prob_anomalous = prob_anomalous / prob_anomalous.sum(axis = 0, dtype = 'int64')
 
                 #histogram plots
-                plot_1 = ax.stairs(
+                plot2_1 = ax2.stairs(
                     prob_normal * 100,
                     edges = edge_normal,
                     fill = True,
                     color = 'tab:blue', alpha = 0.4,
                     label = 'normal',
                     )
-                plot_2 = ax.stairs(
+                plot2_2 = ax2.stairs(
                     prob_anomalous * 100,
                     edges = edge_anomalous,
                     fill = True,
                     color = 'tab:red', alpha = 0.4,
                     label = 'anomalous',
                     )
-                vline = ax.axvline(
+                vline2 = ax2.axvline(
                     x = self._threshold,
                     marker = '', color = 'black', alpha = 0.8,
                     linestyle = '--', linewidth = 1,
@@ -258,8 +306,8 @@ class Autoencoder(nn.Module):
                     )
 
                 #cmf plots
-                ax.set_xmargin(0); ax.set_ymargin(0) #for those of axes coordinates
-                plot_3 = ax.plot(
+                ax2.set_xmargin(0); ax2.set_ymargin(0) #for those of axes coordinates
+                plot2_3 = ax2.plot(
                     np.linspace(0, 1, num = len(prob_normal) + 1, endpoint = True),
                     np.cumsum(
                         np.concatenate([np.array([0.]), prob_normal], axis = 0),
@@ -268,9 +316,9 @@ class Autoencoder(nn.Module):
                     marker = '', color = 'tab:blue', alpha = 0.5,
                     linestyle = '-', linewidth = 1,
                     label = 'normal cmf',
-                    transform = ax.transAxes,
+                    transform = ax2.transAxes,
                     )
-                plot_4 = ax.plot(
+                plot2_4 = ax2.plot(
                     np.linspace(0, 1, num = len(prob_anomalous) + 1, endpoint = True),
                     np.cumsum(
                         np.concatenate([np.array([0.]), prob_anomalous], axis = 0),
@@ -279,30 +327,32 @@ class Autoencoder(nn.Module):
                     marker = '', color = 'tab:red', alpha = 0.5,
                     linestyle = '-', linewidth = 1,
                     label = 'anomalous cmf',
-                    transform = ax.transAxes,
+                    transform = ax2.transAxes,
                     )
 
-                ax.legend(handles = [
-                    vline,
-                    plot_1,
-                    plot_3[0],
-                    plot_2,
-                    plot_4[0],
+                ax2.legend(handles = [
+                    vline2,
+                    plot2_1,
+                    plot2_3[0],
+                    plot2_2,
+                    plot2_4[0],
                     ], loc = 'upper right')
-                returns.append(fig)
+                returns.append(fig2)
 
 
-            #false-negative rate
-            positives = truth.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+            #positives
+            tp = truth & detection
+            tp = tp.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
             fn = truth & ~detection
             fn = fn.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-            fn_rate = fn / positives
+            fnr = fn / (tp + fn)
 
-            #false-positive rate
-            negatives = (~truth).astype('int64').sum(axis = 0, dtype = 'int64').tolist()
+            #negatives
+            tn = ~truth & ~detection
+            tn = tn.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
             fp = ~truth & detection
             fp = fp.astype('int64').sum(axis = 0, dtype = 'int64').tolist()
-            fp_rate = fp / negatives
+            fpr = fp / (fp + tn)
 
 
             # - table -
@@ -315,9 +365,9 @@ class Autoencoder(nn.Module):
 
             table.add_row(
                 Text('false negative', style = 'red'),
-                Text(format(fn_rate, '.1%'), style = 'bold red'),
+                Text(format(fnr, '.1%'), style = 'bold red'),
                 )
-            table.add_row('false positive', format(fp_rate, '.1%'))
+            table.add_row('false positive', format(fpr, '.1%'))
             table.add_row('Precision', format(precision_score(truth, detection), '.3f'))
             table.add_row('Recall', format(recall_score(truth, detection), '.3f'))
             table.add_row('F1', format(f1_score(truth, detection), '.3f'))

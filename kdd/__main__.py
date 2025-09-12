@@ -89,8 +89,9 @@ ae.fit(X, latent = LATENT, q_threshold = Q_THRESHOLD)
 
 #detection
 print('\n\n --- Result ---\n')
-prediction_, reconstructions_ = ae.detect(mix_, truth_, return_histplot = True)
+prediction_, roc_curve_, reconstructions_ = ae.detect(mix_, truth_, return_rocplot = True, return_histplot = True)
 
 #saved
 os.makedirs('figures', exist_ok = True)
+roc_curve_.savefig('figures/roc_curve.png', dpi = 600)
 reconstructions_.savefig('figures/reconstruction.png', dpi = 600)
