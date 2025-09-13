@@ -214,9 +214,9 @@ class Autoencoder(nn.Module):
 
             if return_rocplot:
                 thresholds = np.linspace(
-                    np.quantile(loss, 0, axis = 0),
-                    np.quantile(loss, 0.99, axis = 0),
-                    num = 300, endpoint = False, dtype = 'float64',
+                    loss.min(axis = 0),
+                    loss.max(axis = 0) + np.spacing(loss.max(axis = 0)),
+                    num = 500+1, endpoint = True, dtype = 'float64',
                     )
                 thresholds = thresholds.tolist()
 
@@ -245,16 +245,27 @@ class Autoencoder(nn.Module):
                 fig1 = pp.figure(layout = 'constrained', facecolor = 'ivory')
                 fig1.suptitle('ROC')
                 ax1 = fig1.add_subplot()
-                ax1.set_box_aspect(0.8)
+                ax1.set_box_aspect(1)
                 ax1.set_xlabel('FP rate')
                 ax1.set_ylabel('TP rate')
+                ax1.spines['left'].set(color = 'black')
+                ax1.spines['bottom'].set(color = 'black')
                 pp.setp(ax1.get_yticklabels(), rotation = 90, ha = 'right', va = 'center')
 
                 plot1 = ax1.plot(
                     fp_rate, tp_rate,
-                    marker = '', color = 'tab:blue',
+                    marker = '', color = 'tab:green',
                     linestyle = '-', linewidth = 2,
                     )
+                diagonal1 = ax1.plot(
+                    [0, 1], [0, 1],
+                    marker = '', color = 'grey',
+                    linestyle = '--', linewidth = 1, alpha = 0.5,
+                    label = 'random classifier',
+                    )
+                ax1.legend(handles = [
+                    diagonal1[0],
+                    ])
 
                 returns.append(fig1)
 
