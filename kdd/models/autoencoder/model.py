@@ -1,5 +1,6 @@
 from common import *
 logger = logging.getLogger(name = __name__)
+from scipy import integrate
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import precision_score, recall_score, f1_score
 
@@ -241,6 +242,11 @@ class Autoencoder(nn.Module):
 
                 tp_rate = np.stack(tp_rate, axis = 0)
                 fp_rate = np.stack(fp_rate, axis = 0)
+                auc = integrate.trapezoid(
+                    np.flip(tp_rate, axis = 0),
+                    x = np.flip(fp_rate, axis = 0),
+                    axis = 0,
+                    )
 
                 fig1 = pp.figure(layout = 'constrained', facecolor = 'ivory')
                 fig1.suptitle('ROC')
@@ -254,8 +260,9 @@ class Autoencoder(nn.Module):
 
                 plot1 = ax1.plot(
                     fp_rate, tp_rate,
-                    marker = '', color = 'tab:green',
+                    marker = '', color = '#197070',
                     linestyle = '-', linewidth = 2,
+                    label = 'AUC: {area:.3f}'.format(area = auc.tolist()),
                     )
                 diagonal1 = ax1.plot(
                     [0, 1], [0, 1],
@@ -265,6 +272,7 @@ class Autoencoder(nn.Module):
                     )
 
                 ax1.legend(handles = [
+                    plot1[0],
                     diagonal1[0],
                     ], loc = 'center right')
                 returns.append(fig1)
