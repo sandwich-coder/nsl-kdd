@@ -1,4 +1,4 @@
-latent: 5
-resplit: True
+latent: auto
+resplit: False
 q_threshold: 0.99
 logging_level: INFO
