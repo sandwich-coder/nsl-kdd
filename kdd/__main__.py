@@ -93,5 +93,5 @@ detection_, roc_curve_, reconstructions_ = ae.detect(mix_, truth_, return_rocplo
 
 #saved
 os.makedirs('figures', exist_ok = True)
-roc_curve_.savefig('figures/roc_curve.png', dpi = 600)
+roc_curve_.savefig('figures/roc-curve.png', dpi = 600)
 reconstructions_.savefig('figures/reconstructions.png', dpi = 600)
