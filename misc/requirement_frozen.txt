@@ -1,7 +1,8 @@
 # This is the set of packages used when a "name-locking" issue was found in 'savefig' method of the matplotlib 'Figure' class. The figure that was "locked" with name 'figures/roc_curve.png' was the one drawn at the commit hash 'd238801'.
 
-#platform: Linux
+#platform: Linux (Ubuntu-24.04)
 #machine: x86_64
+#language: Python 3.12.3
 
 
 certifi==2025.8.3
