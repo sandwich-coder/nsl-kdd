@@ -248,8 +248,8 @@ class Autoencoder(nn.Module):
                 ax1.set_box_aspect(1)
                 ax1.set_xlabel('FP rate')
                 ax1.set_ylabel('TP rate')
-                ax1.spines['left'].set(color = 'black')
                 ax1.spines['bottom'].set(color = 'black')
+                ax1.spines['left'].set(color = 'black')
                 pp.setp(ax1.get_yticklabels(), rotation = 90, ha = 'right', va = 'center')
 
                 plot1 = ax1.plot(
@@ -263,10 +263,10 @@ class Autoencoder(nn.Module):
                     linestyle = '--', linewidth = 1, alpha = 0.5,
                     label = 'random classifier',
                     )
+
                 ax1.legend(handles = [
                     diagonal1[0],
-                    ])
-
+                    ], loc = 'center right')
                 returns.append(fig1)
 
             if return_histplot:
