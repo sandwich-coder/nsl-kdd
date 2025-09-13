@@ -1,4 +1,4 @@
-# This is the set of packages used when a "name-locking" issue was found in 'savefig' method of the matplotlib 'Figure' class. The figure that was "locked" with name 'figures/roc_curve.png' was the one drawn at the commit hash 'd238801'.
+# This is the set of packages used when a "name-locking" issue was found in 'savefig' method of the matplotlib 'Figure' class. The figure that was "locked" with name 'figures/roc_curve.png' was the one drawn at the commit hash 'd238801'. It may be a problem of terminal command 'explorer.exe' not the python library, but archived for a tiny possibility.
 
 #platform: Linux (Ubuntu-24.04)
 #machine: x86_64

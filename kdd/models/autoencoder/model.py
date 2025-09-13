@@ -248,7 +248,7 @@ class Autoencoder(nn.Module):
                     axis = 0,
                     )
 
-                fig1 = pp.figure(layout = 'constrained', facecolor = 'ivory')
+                fig1 = pp.figure(layout = 'constrained', facecolor = 'white')
                 fig1.suptitle('ROC')
                 ax1 = fig1.add_subplot()
                 ax1.set_box_aspect(1)
@@ -260,7 +260,7 @@ class Autoencoder(nn.Module):
 
                 plot1 = ax1.plot(
                     fp_rate, tp_rate,
-                    marker = '', color = '#197070',
+                    marker = '', color = 'tab:purple',
                     linestyle = '-', linewidth = 2,
                     label = 'AUC: {area:.3f}'.format(area = auc.tolist()),
                     )
